@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
@@ -17,19 +18,17 @@ import java.util.Map;
 @RequestMapping("/films")
 public class FilmController {
 
-    private static final String NEGATIVE_DURATION_EXCEPTION_MESSAGE = "Продолжительность фильма должна быть положительным числом";
     private static final LocalDate START_RELEASE_FILMS = LocalDate.of(1895, 12, 28);
     private static final String NO_EMPTY_ID_EXCEPTION_MESSAGE = "ID не может быть пустым";
     private static final String NO_FOUND_FILM_EXCEPTION_MESSAGE = "Фильм с указанным ID не найден";
     private static final String NO_BLANK_EXCEPTION_MESSAGE = "Название не может быть пустым";
-    private static final String MAX_LENGTH_EXCEPTION_MESSAGE = "Максимальная длина описания — 200 символов";
     private static final String DATE_RELEASE_EXCEPTION_MESSAGE = "Дата релиза — не раньше 28 декабря 1895 года";
     private static final String FILM_EXIST_EXCEPTION_MESSAGE = "Фильм уже в базе";
 
     private final Map<Long, Film> films = new HashMap<>();
 
     @PostMapping
-    public Film postFilms(@RequestBody Film film) {
+    public Film postFilms(@Valid @RequestBody Film film) {
         validateFilm(film);
         film.setId(nextId());
         films.put(film.getId(), film);
@@ -38,7 +37,7 @@ public class FilmController {
     }
 
     @PutMapping
-    public Film putFilms(@RequestBody Film newFilm) {
+    public Film putFilms(@Valid @RequestBody Film newFilm) {
 
         if (newFilm == null || newFilm.getId() == null) {
             log.warn(NO_EMPTY_ID_EXCEPTION_MESSAGE);
@@ -59,12 +58,7 @@ public class FilmController {
             currentFilm.setReleaseDate(newFilm.getReleaseDate());
         }
         if (newFilm.getDuration() != null) {
-            if (newFilm.getDuration() < 0) {
-                log.warn(NEGATIVE_DURATION_EXCEPTION_MESSAGE);
-                throw new ValidationException(NEGATIVE_DURATION_EXCEPTION_MESSAGE);
-            } else {
-                currentFilm.setDuration(newFilm.getDuration());
-            }
+            currentFilm.setDuration(newFilm.getDuration());
         }
         log.debug("Put film: {}", currentFilm);
         return currentFilm;
@@ -81,14 +75,8 @@ public class FilmController {
             if (film == null || film.getName().isBlank()) {
                 throw new ValidationException(NO_BLANK_EXCEPTION_MESSAGE);
             }
-            if (film.getDescription() != null && film.getDescription().length() > 200) {
-                throw new ValidationException(MAX_LENGTH_EXCEPTION_MESSAGE);
-            }
             if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(START_RELEASE_FILMS)) {
                 throw new ValidationException(DATE_RELEASE_EXCEPTION_MESSAGE);
-            }
-            if (film.getDuration() == null || film.getDuration() < 0) {
-                throw new ValidationException(NEGATIVE_DURATION_EXCEPTION_MESSAGE);
             }
             if (isFilmExist(film.getName(), film.getReleaseDate())) {
                 throw new DuplicatedDataException(FILM_EXIST_EXCEPTION_MESSAGE);

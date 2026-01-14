@@ -17,8 +17,14 @@ import java.util.Map;
 @RequestMapping("/films")
 public class FilmController {
 
-    private final String NEGATIVE_DURATION_EXCEPTION_MESSAGE = "Продолжительность фильма должна быть положительным числом";
-    private final LocalDate START_RELEASE_FILMS = LocalDate.of(1895, 12, 28);
+    private static final String NEGATIVE_DURATION_EXCEPTION_MESSAGE = "Продолжительность фильма должна быть положительным числом";
+    private static final LocalDate START_RELEASE_FILMS = LocalDate.of(1895, 12, 28);
+    private static final String NO_EMPTY_ID_EXCEPTION_MESSAGE = "ID не может быть пустым";
+    private static final String NO_FOUND_FILM_EXCEPTION_MESSAGE = "Фильм с указанным ID не найден";
+    private static final String NO_BLANK_EXCEPTION_MESSAGE = "Название не может быть пустым";
+    private static final String MAX_LENGTH_EXCEPTION_MESSAGE = "Максимальная длина описания — 200 символов";
+    private static final String DATE_RELEASE_EXCEPTION_MESSAGE = "Дата релиза — не раньше 28 декабря 1895 года";
+    private static final String FILM_EXIST_EXCEPTION_MESSAGE = "Фильм уже в базе";
 
     private final Map<Long, Film> films = new HashMap<>();
 
@@ -33,8 +39,7 @@ public class FilmController {
 
     @PutMapping
     public Film putFilms(@RequestBody Film newFilm) {
-        String NO_EMPTY_ID_EXCEPTION_MESSAGE = "ID не может быть пустым";
-        String NO_FOUND_FILM_EXCEPTION_MESSAGE = "Фильм с указанным ID не найден";
+
         if (newFilm == null || newFilm.getId() == null) {
             log.warn(NO_EMPTY_ID_EXCEPTION_MESSAGE);
             throw new ValidationException(NO_EMPTY_ID_EXCEPTION_MESSAGE);
@@ -54,7 +59,7 @@ public class FilmController {
             currentFilm.setReleaseDate(newFilm.getReleaseDate());
         }
         if (newFilm.getDuration() != null) {
-            if (newFilm.getDuration().isNegative()) {
+            if (newFilm.getDuration() < 0) {
                 log.warn(NEGATIVE_DURATION_EXCEPTION_MESSAGE);
                 throw new ValidationException(NEGATIVE_DURATION_EXCEPTION_MESSAGE);
             } else {
@@ -67,14 +72,11 @@ public class FilmController {
 
     @GetMapping
     public Collection<Film> getFilms() {
+        System.out.println(films.size());
         return films.values();
     }
 
     private void validateFilm(Film film) {
-        String NO_BLANK_EXCEPTION_MESSAGE = "Название не может быть пустым";
-        String MAX_LENGTH_EXCEPTION_MESSAGE = "Максимальная длина описания — 200 символов";
-        String DATE_RELEASE_EXCEPTION_MESSAGE = "Дата релиза — не раньше 28 декабря 1895 года";
-        String FILM_EXIST_EXCEPTION_MESSAGE = "Фильм уже в базе";
         try {
             if (film == null || film.getName().isBlank()) {
                 throw new ValidationException(NO_BLANK_EXCEPTION_MESSAGE);
@@ -82,10 +84,10 @@ public class FilmController {
             if (film.getDescription() != null && film.getDescription().length() > 200) {
                 throw new ValidationException(MAX_LENGTH_EXCEPTION_MESSAGE);
             }
-            if (film.getReleaseDate() == null || film.getReleaseDate().isAfter(START_RELEASE_FILMS)) {
+            if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(START_RELEASE_FILMS)) {
                 throw new ValidationException(DATE_RELEASE_EXCEPTION_MESSAGE);
             }
-            if (film.getDuration() == null || film.getDuration().isNegative()) {
+            if (film.getDuration() == null || film.getDuration() < 0) {
                 throw new ValidationException(NEGATIVE_DURATION_EXCEPTION_MESSAGE);
             }
             if (isFilmExist(film.getName(), film.getReleaseDate())) {
@@ -98,7 +100,7 @@ public class FilmController {
     }
 
     private boolean isFilmExist(String name, LocalDate date) {
-        return films.values().stream()
+        return !films.values().stream()
                 .filter(film -> film.getName().equals(name) && film.getReleaseDate().equals(date))
                 .toList()
                 .isEmpty();

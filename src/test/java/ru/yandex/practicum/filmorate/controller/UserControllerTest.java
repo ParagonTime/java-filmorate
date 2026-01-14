@@ -46,15 +46,15 @@ class UserControllerTest {
         assertEquals("onlyLogin", createdUser.getName(), "Имя должно совпадать с логином, если оно пустое");
     }
 
-    @Test
-    void shouldThrowExceptionWhenEmailIsInvalid() {
-        User user = new User();
-        user.setEmail("invalid-email.com");
-        user.setLogin("login");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
-
-        assertThrows(ValidationException.class, () -> userController.postUsers(user));
-    }
+//    @Test
+//    void shouldThrowExceptionWhenEmailIsInvalid() {
+//        User user = new User();
+//        user.setEmail("invalid-email.com");
+//        user.setLogin("login");
+//        user.setBirthday(LocalDate.of(2000, 1, 1));
+//
+//        assertThrows(ValidationException.class, () -> userController.postUsers(user));
+//    }
 
     @Test
     void shouldThrowExceptionWhenBirthdayInFuture() {

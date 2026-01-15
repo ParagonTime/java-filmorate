@@ -66,32 +66,28 @@ public class FilmController {
 
     @GetMapping
     public Collection<Film> getFilms() {
-        System.out.println(films.size());
+        log.debug("Call getFilms with {}", films.values());
         return films.values();
     }
 
     private void validateFilm(Film film) {
-        try {
-            if (film == null || film.getName().isBlank()) {
-                throw new ValidationException(NO_BLANK_EXCEPTION_MESSAGE);
-            }
-            if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(START_RELEASE_FILMS)) {
-                throw new ValidationException(DATE_RELEASE_EXCEPTION_MESSAGE);
-            }
-            if (isFilmExist(film.getName(), film.getReleaseDate())) {
-                throw new DuplicatedDataException(FILM_EXIST_EXCEPTION_MESSAGE);
-            }
-        } catch (RuntimeException e) {
-            log.warn(e.getMessage());
-            throw e;
+        if (film == null || film.getName().isBlank()) {
+            log.warn(NO_BLANK_EXCEPTION_MESSAGE);
+            throw new ValidationException(NO_BLANK_EXCEPTION_MESSAGE);
+        }
+        if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(START_RELEASE_FILMS)) {
+            log.warn(DATE_RELEASE_EXCEPTION_MESSAGE);
+            throw new ValidationException(DATE_RELEASE_EXCEPTION_MESSAGE);
+        }
+        if (isFilmExist(film.getName(), film.getReleaseDate())) {
+            log.warn(FILM_EXIST_EXCEPTION_MESSAGE);
+            throw new DuplicatedDataException(FILM_EXIST_EXCEPTION_MESSAGE);
         }
     }
 
     private boolean isFilmExist(String name, LocalDate date) {
-        return !films.values().stream()
-                .filter(film -> film.getName().equals(name) && film.getReleaseDate().equals(date))
-                .toList()
-                .isEmpty();
+        return films.values().stream()
+                .anyMatch(film -> film.getName().equals(name) && film.getReleaseDate().equals(date));
     }
 
     private long nextId() {

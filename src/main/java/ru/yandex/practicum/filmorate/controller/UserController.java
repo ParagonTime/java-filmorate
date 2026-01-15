@@ -63,26 +63,25 @@ public class UserController {
 
     @GetMapping
     public Collection<User> getUsers() {
+        log.debug("Call getUsers with {}", users.values());
         return users.values();
     }
 
     private void validateUser(User user) {
-        try {
-            if (user == null || user.getEmail() == null) {
-                throw new ValidationException(EMPTY_EMAIL_EXCEPTION_MESSAGE);
-            }
-            if (user.getLogin() == null || user.getLogin().isBlank()) {
-                throw new ValidationException(BLANK_LOGIN_EXCEPTION_MESSAGE);
-            }
-            if (user.getName() == null || user.getName().isBlank()) {
-                user.setName(user.getLogin());
-            }
-            if (user.getBirthday() == null || user.getBirthday().isAfter(LocalDate.now())) {
-                throw new ValidationException(FUTURE_BIRTHDAY_EXCEPTION_MESSAGE);
-            }
-        } catch (RuntimeException e) {
-            log.warn(e.getMessage());
-            throw e;
+        if (user == null || user.getEmail() == null) {
+            log.warn(EMPTY_EMAIL_EXCEPTION_MESSAGE);
+            throw new ValidationException(EMPTY_EMAIL_EXCEPTION_MESSAGE);
+        }
+        if (user.getLogin() == null || user.getLogin().isBlank()) {
+            log.warn(BLANK_LOGIN_EXCEPTION_MESSAGE);
+            throw new ValidationException(BLANK_LOGIN_EXCEPTION_MESSAGE);
+        }
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
+        if (user.getBirthday() == null || user.getBirthday().isAfter(LocalDate.now())) {
+            log.warn(FUTURE_BIRTHDAY_EXCEPTION_MESSAGE);
+            throw new ValidationException(FUTURE_BIRTHDAY_EXCEPTION_MESSAGE);
         }
     }
 

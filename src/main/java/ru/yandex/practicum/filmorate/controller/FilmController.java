@@ -1,96 +1,58 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
 
-import java.time.LocalDate;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @RestController
 @RequestMapping("/films")
+@RequiredArgsConstructor
 public class FilmController {
 
-    private static final LocalDate START_RELEASE_FILMS = LocalDate.of(1895, 12, 28);
-    private static final String NO_EMPTY_ID_EXCEPTION_MESSAGE = "ID не может быть пустым";
-    private static final String NO_FOUND_FILM_EXCEPTION_MESSAGE = "Фильм с указанным ID не найден";
-    private static final String NO_BLANK_EXCEPTION_MESSAGE = "Название не может быть пустым";
-    private static final String DATE_RELEASE_EXCEPTION_MESSAGE = "Дата релиза — не раньше 28 декабря 1895 года";
-    private static final String FILM_EXIST_EXCEPTION_MESSAGE = "Фильм уже в базе";
-
-    private final Map<Long, Film> films = new HashMap<>();
+    private final FilmService filmService;
+    private final UserService userService;
 
     @PostMapping
-    public Film postFilms(@Valid @RequestBody Film film) {
-        validateFilm(film);
-        film.setId(nextId());
-        films.put(film.getId(), film);
-        log.debug("New film: {}", film);
-        return film;
+    @ResponseStatus(HttpStatus.CREATED)
+    public Film postFilm(@Valid @RequestBody Film film) {
+        return filmService.postFilm(film);
     }
 
     @PutMapping
-    public Film putFilms(@Valid @RequestBody Film newFilm) {
-
-        if (newFilm == null || newFilm.getId() == null) {
-            log.warn(NO_EMPTY_ID_EXCEPTION_MESSAGE);
-            throw new ValidationException(NO_EMPTY_ID_EXCEPTION_MESSAGE);
-        }
-        Film currentFilm = films.get(newFilm.getId());
-        if (currentFilm == null) {
-            log.warn(NO_FOUND_FILM_EXCEPTION_MESSAGE);
-            throw new NotFoundException(NO_FOUND_FILM_EXCEPTION_MESSAGE);
-        }
-        if (newFilm.getName() != null) {
-            currentFilm.setName(newFilm.getName());
-        }
-        if (newFilm.getDescription() != null) {
-            currentFilm.setDescription(newFilm.getDescription());
-        }
-        if (newFilm.getReleaseDate() != null) {
-            currentFilm.setReleaseDate(newFilm.getReleaseDate());
-        }
-        if (newFilm.getDuration() != null) {
-            currentFilm.setDuration(newFilm.getDuration());
-        }
-        log.debug("Put film: {}", currentFilm);
-        return currentFilm;
+    public Film putFilm(@Valid @RequestBody Film newFilm) {
+        return filmService.putFilm(newFilm);
     }
 
     @GetMapping
     public Collection<Film> getFilms() {
-        log.debug("Call getFilms with {}", films.values());
-        return films.values();
+        return filmService.getFilms();
     }
 
-    private void validateFilm(Film film) {
-        if (film == null || film.getName().isBlank()) {
-            log.warn(NO_BLANK_EXCEPTION_MESSAGE);
-            throw new ValidationException(NO_BLANK_EXCEPTION_MESSAGE);
-        }
-        if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(START_RELEASE_FILMS)) {
-            log.warn(DATE_RELEASE_EXCEPTION_MESSAGE);
-            throw new ValidationException(DATE_RELEASE_EXCEPTION_MESSAGE);
-        }
-        if (isFilmExist(film.getName(), film.getReleaseDate())) {
-            log.warn(FILM_EXIST_EXCEPTION_MESSAGE);
-            throw new DuplicatedDataException(FILM_EXIST_EXCEPTION_MESSAGE);
-        }
+    @GetMapping("/{id}")
+    public Film getUser(@PathVariable("id") Long id) {
+        return filmService.getFilm(id);
     }
 
-    private boolean isFilmExist(String name, LocalDate date) {
-        return films.values().stream()
-                .anyMatch(film -> film.getName().equals(name) && film.getReleaseDate().equals(date));
+    @PutMapping("/{id}/like/{userId}")
+    public Boolean addLike(@PathVariable("id") Long filmId, @PathVariable("userId") Long userId) {
+        return filmService.addLine(filmId, userId);
     }
 
-    private long nextId() {
-        return films.size() + 1;
+    @DeleteMapping("/{id}/like/{userId}")
+    public Boolean deleteLike(@PathVariable("id") Long filmId, @PathVariable("userId") Long userId) {
+        return filmService.deleteLine(filmId, userId);
+    }
+
+    @GetMapping("/popular")
+    public Collection<Film> getPopularFilms(@RequestParam(defaultValue = "10") Long count) {
+        return filmService.getPopularFilms(count);
     }
 }

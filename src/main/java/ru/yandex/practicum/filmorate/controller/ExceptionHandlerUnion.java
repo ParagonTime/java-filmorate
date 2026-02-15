@@ -27,7 +27,7 @@ public class ExceptionHandlerUnion {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleDuplicated(final DuplicatedDataException e) {
         return new ErrorResponse(e.getMessage());
     }

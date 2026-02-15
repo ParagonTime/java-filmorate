@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.service;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -14,11 +13,11 @@ public class FilmService {
 
     private final FilmStorage filmStorage;
 
-    public Film postFilm(@Valid Film film) {
+    public Film postFilm(Film film) {
         return filmStorage.postFilm(film);
     }
 
-    public Film putFilm(@Valid Film newFilm) {
+    public Film putFilm(Film newFilm) {
         return filmStorage.putFilm(newFilm);
     }
 
@@ -30,11 +29,11 @@ public class FilmService {
         return filmStorage.getFilm(id);
     }
 
-    public Boolean addLine(Long filmId, Long userId) {
+    public Boolean addLike(Long filmId, Long userId) {
         return filmStorage.addLike(filmId, userId);
     }
 
-    public Boolean deleteLine(Long filmId, Long userId) {
+    public Boolean deleteLike(Long filmId, Long userId) {
         return filmStorage.deleteLike(filmId, userId);
     }
 

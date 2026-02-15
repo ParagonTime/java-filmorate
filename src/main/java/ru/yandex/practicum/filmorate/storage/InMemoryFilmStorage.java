@@ -11,7 +11,6 @@ import ru.yandex.practicum.filmorate.service.UserService;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 
 @Slf4j
@@ -37,7 +36,6 @@ public class InMemoryFilmStorage implements FilmStorage {
     public Film postFilm(Film film) {
         validateFilm(film);
         film.setId(nextId());
-        film.setUsersLiked(new HashSet<>());
         films.put(film.getId(), film);
         log.debug("New film: {}", film);
         return film;

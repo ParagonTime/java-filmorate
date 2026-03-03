@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.FriendshipStatus;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
@@ -78,8 +79,7 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public Collection<User> addFriend(Long id, Long friendId) {
         if (users.containsKey(id) && users.containsKey(friendId)) {
-            users.get(id).getFriends().add(friendId);
-            users.get(friendId).getFriends().add(id);
+            users.get(id).getFriends().put(friendId, FriendshipStatus.UNCONFIRMED);
             return List.of(users.get(id), users.get(friendId));
         }
         throw new NotFoundException(USER_NO_FOUND_MESSAGE);
@@ -98,7 +98,7 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public Collection<User> getFriends(Long id) {
         if (users.containsKey(id)) {
-            Set<Long> friendsIds = users.get(id).getFriends();
+            Set<Long> friendsIds = users.get(id).getFriends().keySet();
             return friendsIds.stream()
                     .map(users::get)
                     .toList();
@@ -111,8 +111,8 @@ public class InMemoryUserStorage implements UserStorage {
         if (users.containsKey(id) && users.containsKey(otherId)) {
             User user = users.get(id);
             User otherUser = users.get(otherId);
-            return user.getFriends().stream()
-                    .filter(otherUser.getFriends()::contains)
+            return user.getFriends().values().stream()
+                    .filter(otherUser.getFriends().values()::contains)
                     .map(users::get)
                     .toList();
         }

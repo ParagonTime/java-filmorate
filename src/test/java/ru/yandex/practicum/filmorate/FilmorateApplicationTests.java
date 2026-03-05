@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class FilmorateApplicationTests {
     private final UserRepository userStorage;
 
+    // comment for commit
     @BeforeAll
     public static void start() {
 

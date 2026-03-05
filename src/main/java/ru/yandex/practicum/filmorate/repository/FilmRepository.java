@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.util.Collection;
-import java.util.Set;
 
 @Repository
 public class FilmRepository extends BaseRepository<Film> implements FilmStorage {

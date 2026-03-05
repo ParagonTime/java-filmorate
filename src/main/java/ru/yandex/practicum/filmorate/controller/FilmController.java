@@ -4,8 +4,19 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.Film;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.dto.NewFilmRequest;
+import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
@@ -20,22 +31,22 @@ public class FilmController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Film postFilm(@Valid @RequestBody Film film) {
-        return filmService.postFilm(film);
+    public FilmDto postFilm(@Valid @RequestBody NewFilmRequest request) {
+        return filmService.postFilm(request);
     }
 
     @PutMapping
-    public Film putFilm(@Valid @RequestBody Film newFilm) {
-        return filmService.putFilm(newFilm);
+    public FilmDto putFilm(@Valid @RequestBody UpdateFilmRequest request) {
+        return filmService.putFilm(request);
     }
 
     @GetMapping
-    public Collection<Film> getFilms() {
+    public Collection<FilmDto> getFilms() {
         return filmService.getFilms();
     }
 
     @GetMapping("/{id}")
-    public Film getUser(@PathVariable("id") Long id) {
+    public FilmDto getFilm(@PathVariable("id") Long id) {
         return filmService.getFilm(id);
     }
 
@@ -50,7 +61,7 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public Collection<Film> getPopularFilms(@RequestParam(defaultValue = "10") Long count) {
+    public Collection<FilmDto> getPopularFilms(@RequestParam(defaultValue = "10") Long count) {
         return filmService.getPopularFilms(count);
     }
 }

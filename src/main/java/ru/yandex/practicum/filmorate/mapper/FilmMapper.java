@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Component
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class FilmMapper {
-    public static Film mapToFilm(NewFilmRequest request) {
+    public Film mapToFilm(NewFilmRequest request) {
         Film film = new Film();
         film.setName(request.getName());
         film.setDescription(request.getDescription());
@@ -36,7 +36,7 @@ public class FilmMapper {
         return film;
     }
 
-    public static FilmDto mapToFilmDto(Film film, MpaDto mpaDto, List<GenreDto> genres) {
+    public FilmDto mapToFilmDto(Film film, MpaDto mpaDto, List<GenreDto> genres) {
         FilmDto dto = new FilmDto();
         dto.setId(film.getId());
         dto.setName(film.getName());
@@ -48,7 +48,7 @@ public class FilmMapper {
         return dto;
     }
 
-    public static Film updateFilmFields(Film film, UpdateFilmRequest request) {
+    public Film updateFilmFields(Film film, UpdateFilmRequest request) {
         if (request.hasName()) {
             film.setName(request.getName());
         }

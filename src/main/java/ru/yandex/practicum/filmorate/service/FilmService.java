@@ -30,6 +30,7 @@ public class FilmService {
     private final FilmRepository filmRepository;
     private final MpaRepository mpaRepository;
     private final GenreRepository genreRepository;
+    private final FilmMapper filmMapper;
 
     @Transactional
     public FilmDto postFilm(NewFilmRequest request) {
@@ -45,7 +46,7 @@ public class FilmService {
         if (request.getMpa() != null && request.getMpa().getId() > mpaCount) {
             throw new NotFoundException("Выбран несуществующий рейтинг");
         }
-        Film film = FilmMapper.mapToFilm(request);
+        Film film = filmMapper.mapToFilm(request);
         Film savedFilm = filmRepository.save(film);
         if (request.getGenres() != null && !request.getGenres().isEmpty()) {
             request.getGenres().stream()
@@ -72,7 +73,7 @@ public class FilmService {
             throw new NotFoundException("Выбран несуществующий рейтинг");
         }
         Film film = filmRepository.getFilm(request.getId());
-        Film updatedFilm = FilmMapper.updateFilmFields(film, request);
+        Film updatedFilm = filmMapper.updateFilmFields(film, request);
         Film savedFilm = filmRepository.update(updatedFilm);
         if (request.hasGenres()) {
             filmRepository.deleteGenres(savedFilm.getId());
@@ -120,6 +121,6 @@ public class FilmService {
     private FilmDto getFilmDto(Film film) {
         MpaDto mpa = mpaRepository.getMpaById(film.getRatingId()).orElse(null);
         List<GenreDto> genres = genreRepository.getAllGenresByFilmId(film.getId());
-        return FilmMapper.mapToFilmDto(film, mpa, genres);
+        return filmMapper.mapToFilmDto(film, mpa, genres);
     }
 }

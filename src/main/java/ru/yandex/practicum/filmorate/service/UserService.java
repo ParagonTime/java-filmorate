@@ -3,8 +3,13 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.yandex.practicum.filmorate.dto.NewUserRequest;
+import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
+import ru.yandex.practicum.filmorate.dto.UserDto;
+import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.repository.UserRepository;
 
 import java.util.Collection;
 
@@ -13,49 +18,66 @@ import java.util.Collection;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserStorage userStorage;
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
-    public User postUser(User user) {
-        log.debug("create user {}", user);
-        return userStorage.postUser(user);
+    public UserDto postUser(NewUserRequest request) {
+        log.debug("create user {}", request);
+        User user = userRepository.save(userMapper.mapToUser(request));
+        return userMapper.mapToUserDto(user);
     }
 
-    public User putUser(User newUser) {
-        log.debug("put user {}", newUser);
-        return userStorage.putUser(newUser);
+    @Transactional
+    public UserDto putUser(UpdateUserRequest request) {
+        log.debug("put user {}", request);
+        User user = userRepository.getUser(request.getId());
+        User newUser = userMapper.updateUserFields(user, request);
+        newUser = userRepository.update(newUser);
+        return userMapper.mapToUserDto(newUser);
     }
 
-    public Collection<User> getUsers() {
+    public Collection<UserDto> getUsers() {
         log.debug("call getUsers");
-        return userStorage.getUsers();
+        return userRepository.getUsers().stream()
+                .map(userMapper::mapToUserDto)
+                .toList();
     }
 
-    public User getUser(Long id) {
+    public UserDto getUser(Long id) {
         log.debug("call getUser by id {}", id);
-        return userStorage.getUser(id);
+        User user = userRepository.getUser(id);
+        return userMapper.mapToUserDto(user);
     }
 
-    public Collection<User> addFriend(Long id, Long friendId) {
+    @Transactional
+    public Collection<UserDto> addFriend(Long id, Long friendId) {
         log.debug("add friend {} user {}", friendId, id);
-        return userStorage.addFriend(id, friendId);
+        Collection<User> users = userRepository.addFriend(id, friendId);
+        return users.stream()
+                .map(userMapper::mapToUserDto)
+                .toList();
     }
 
-    public Collection<User> deleteFriend(Long id, Long friendId) {
+    @Transactional
+    public Collection<UserDto> deleteFriend(Long id, Long friendId) {
         log.debug("delete friend {} user {}", friendId, id);
-        return userStorage.deleteFriend(id, friendId);
+        Collection<User> users = userRepository.deleteFriend(id, friendId);
+        return users.stream()
+                .map(userMapper::mapToUserDto)
+                .toList();
     }
 
-    public Collection<User> getfriends(Long id) {
+    public Collection<UserDto> getFriends(Long id) {
         log.debug("call getFriends user {}", id);
-        return userStorage.getFriends(id);
+        return userRepository.getFriends(id).stream()
+                .map(userMapper::mapToUserDto)
+                .toList();
     }
 
-    public Collection<User> getCommonFriends(Long id, Long otherId) {
+    public Collection<UserDto> getCommonFriends(Long id, Long otherId) {
         log.debug("call getCommonFriends user {} other {}", id, otherId);
-        return userStorage.getCommonFriends(id, otherId);
-    }
-
-    public boolean userExist(Long id) {
-        return userStorage.userExist(id);
+        return userRepository.getCommonFriends(id, otherId).stream()
+                .map(userMapper::mapToUserDto)
+                .toList();
     }
 }

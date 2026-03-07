@@ -5,9 +5,9 @@ import ru.yandex.practicum.filmorate.model.Film;
 import java.util.Collection;
 
 public interface FilmStorage {
-    Film postFilm(Film film);
+    Film save(Film film);
 
-    Film putFilm(Film newFilm);
+    Film update(Film film);
 
     Collection<Film> getFilms();
 

@@ -22,15 +22,9 @@ public class ExceptionHandlerUnion {
         return new ErrorResponse(e.getMessage());
     }
 
-    @ExceptionHandler
+    @ExceptionHandler({ValidationException.class, DuplicatedDataException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleValidated(final ValidationException e) {
-        return new ErrorResponse(e.getMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleDuplicated(final DuplicatedDataException e) {
+    public ErrorResponse handleValidated(final Exception e) {
         return new ErrorResponse(e.getMessage());
     }
 

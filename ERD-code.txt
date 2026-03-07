@@ -1,44 +1,59 @@
-// Use DBML to define your database structure
-// Docs: https://dbml.dbdiagram.io/docs
-
-Table film {
-  id integer [primary key]
-  name varchar [not null]
-  description varchar
-  release_date timestamp [not null]
-  duration integer [not null]
-  rating varchar [not null]
-}
-
-Table user_like {
-  id integer [primary key]
-  film_id integer [not null]
-  user_id integer [not null]
-}
-
-Table film_genre {
-  id integer [primary key]
-  film_id integer [not null]
-  genre varchar [not null]
-}
-
-Table user {
-  id integer [primary key]
-  email varchar [not null]
-  login varchar [not null]
-  name varchar [not null]
+Table users {
+  id bigint [pk, increment]
+  email varchar(255) [not null, unique]
+  login varchar(255) [not null]
+  name varchar(255)
   birthday date
 }
 
-Table friendship {
-  id integer [primary key]
-  friend_from integer [not null]
-  friend_to integer [not null]
-  friendship_status varchar [not null]
+Table ratings {
+  id bigint [pk, increment]
+  rating_name varchar(255)
 }
 
-Ref: film.id < film_genre.film_id
-Ref: film.id < user_like.film_id
-Ref: user.id < user_like.user_id
-Ref: user.id < friendship.friend_from
-Ref: user.id < friendship.friend_to
+Table genres {
+  id bigint [pk, increment]
+  genre_name varchar(255) [not null]
+}
+
+Table films {
+  id bigint [pk, increment]
+  name varchar(255) [not null]
+  description varchar(200)
+  release_date date
+  duration integer
+  rating_id bigint
+}
+
+Table film_genre {
+  film_id bigint [not null]
+  genre_id bigint [not null]
+  indexes {
+    (film_id, genre_id) [pk]
+  }
+}
+
+Table user_like {
+  film_id bigint [not null]
+  user_id bigint [not null]
+  indexes {
+    (film_id, user_id) [pk]
+  }
+}
+
+Table friendship {
+  friend_from bigint [not null]
+  friend_to bigint [not null]
+  friendship_status varchar(20)
+  indexes {
+    (friend_from, friend_to) [pk]
+  }
+}
+
+Ref: films.rating_id > ratings.id
+Ref: film_genre.film_id > films.id
+Ref: film_genre.genre_id > genres.id
+Ref: user_like.film_id > films.id
+Ref: user_like.user_id > users.id
+Ref: friendship.friend_from > users.id
+Ref: friendship.friend_to > users.id

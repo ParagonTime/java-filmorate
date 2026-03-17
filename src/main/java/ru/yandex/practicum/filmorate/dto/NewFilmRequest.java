@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -21,4 +22,5 @@ public class NewFilmRequest {
     private Integer duration;
     private MpaDto mpa;
     private List<GenreDto> genres;
+    private List<DirectorDto> director;
 }

@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.mapper;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.dto.DirectorDto;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
 import ru.yandex.practicum.filmorate.dto.MpaDto;
@@ -36,7 +37,7 @@ public class FilmMapper {
         return film;
     }
 
-    public FilmDto mapToFilmDto(Film film, MpaDto mpaDto, List<GenreDto> genres) {
+    public FilmDto mapToFilmDto(Film film, MpaDto mpaDto, List<GenreDto> genres, List<DirectorDto> directorDtos) {
         FilmDto dto = new FilmDto();
         dto.setId(film.getId());
         dto.setName(film.getName());
@@ -45,6 +46,7 @@ public class FilmMapper {
         dto.setMpa(mpaDto);
         dto.setReleaseDate(film.getReleaseDate());
         dto.setDuration(film.getDuration());
+        dto.setDirector(directorDtos);
         return dto;
     }
 
@@ -69,6 +71,12 @@ public class FilmMapper {
         }
         if (request.hasMpa()) {
             film.setRatingId(request.getMpa().getId());
+        }
+        if (request.hasDirector()) {
+            Set<Long> directIds = request.getDirector().stream()
+                    .map(DirectorDto::getId)
+                    .collect(Collectors.toSet());
+            film.setDirectorsIds(directIds);
         }
         return film;
     }

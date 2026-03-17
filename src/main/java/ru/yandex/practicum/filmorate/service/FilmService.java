@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.yandex.practicum.filmorate.dto.DirectorDto;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
 import ru.yandex.practicum.filmorate.dto.MpaDto;
@@ -13,13 +14,17 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.repository.DirectorRepository;
 import ru.yandex.practicum.filmorate.repository.FilmRepository;
 import ru.yandex.practicum.filmorate.repository.GenreRepository;
 import ru.yandex.practicum.filmorate.repository.MpaRepository;
 
+import java.lang.reflect.Array;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -30,6 +35,7 @@ public class FilmService {
     private final FilmRepository filmRepository;
     private final MpaRepository mpaRepository;
     private final GenreRepository genreRepository;
+    private final DirectorRepository directorRepository;
     private final FilmMapper filmMapper;
 
     @Transactional
@@ -54,6 +60,12 @@ public class FilmService {
                     .distinct()
                     .forEach(genreId -> filmRepository.saveGenres(savedFilm.getId(), genreId)
             );
+        }
+        if (request.getDirector() != null && !request.getDirector().isEmpty()) {
+            request.getDirector().stream()
+                    .map(DirectorDto::getId)
+                    .distinct()
+                    .forEach(directorId -> directorRepository.saveDirector(savedFilm.getId(), directorId));
         }
         return getFilmDto(savedFilm);
     }
@@ -80,8 +92,14 @@ public class FilmService {
             request.getGenres().stream()
                     .map(GenreDto::getId)
                     .distinct()
-                    .forEach(genreId -> filmRepository.saveGenres(savedFilm.getId(), genreId)
-                    );
+                    .forEach(genreId -> filmRepository.saveGenres(savedFilm.getId(), genreId));
+        }
+        if (request.hasDirector()) {
+            directorRepository.deleteDirectors(savedFilm.getId());
+            request.getDirector().stream()
+                    .map(DirectorDto::getId)
+                    .distinct()
+                    .forEach(directorId -> directorRepository.saveDirector(savedFilm.getId(), directorId));
         }
         return getFilmDto(savedFilm);
     }
@@ -121,6 +139,16 @@ public class FilmService {
     private FilmDto getFilmDto(Film film) {
         MpaDto mpa = mpaRepository.getMpaById(film.getRatingId()).orElse(null);
         List<GenreDto> genres = genreRepository.getAllGenresByFilmId(film.getId());
-        return filmMapper.mapToFilmDto(film, mpa, genres);
+        List<DirectorDto> directorDtos = directorRepository.getDirectorsByFilm(film.getId());
+        return filmMapper.mapToFilmDto(film, mpa, genres, directorDtos);
+    }
+
+    public Collection<FilmDto> getFilmsByDirector(Long directorId, String sortBy) {
+        if (!List.of("year", "likes").contains(sortBy)) {
+            throw new ValidationException("Неизвестный аргумент sortBy: " + sortBy);
+        }
+        return filmRepository.getFilmsByDirector(directorId, sortBy).stream()
+                .map(this::getFilmDto)
+                .collect(Collectors.toList());
     }
 }

@@ -19,12 +19,9 @@ import ru.yandex.practicum.filmorate.repository.FilmRepository;
 import ru.yandex.practicum.filmorate.repository.GenreRepository;
 import ru.yandex.practicum.filmorate.repository.MpaRepository;
 
-import java.lang.reflect.Array;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j

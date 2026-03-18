@@ -8,9 +8,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import ru.yandex.practicum.filmorate.dto.DirectorDto;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
 import ru.yandex.practicum.filmorate.dto.MpaDto;
+import ru.yandex.practicum.filmorate.dto.NewDirectorRequest;
 import ru.yandex.practicum.filmorate.dto.NewFilmRequest;
 import ru.yandex.practicum.filmorate.dto.NewUserRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
@@ -33,10 +35,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class FilmServiceTest {
     private final FilmService filmService;
     private final UserService userService;
+    private final DirectorService directorService;
     private static NewFilmRequest newFilm;
-    private static NewFilmRequest filmWithGenres;
+    private static NewFilmRequest filmWithAllFields;
     private static NewUserRequest user;
     private static NewUserRequest userTwo;
+    private static DirectorDto directorDtoOne;
+    private static DirectorDto directorDtoTwo;
     private static int emailCount;
     private static int filmCount;
 
@@ -76,20 +81,28 @@ class FilmServiceTest {
         mpa.setId(1L);
         newFilm.setMpa(mpa);
 
-        filmWithGenres = new NewFilmRequest();
-        filmWithGenres.setName(getNewFilmName());
-        filmWithGenres.setDescription("Description with genres");
-        filmWithGenres.setReleaseDate(LocalDate.of(2000, 1, 1));
-        filmWithGenres.setDuration(120);
+        filmWithAllFields = new NewFilmRequest();
+        filmWithAllFields.setName(getNewFilmName());
+        filmWithAllFields.setDescription("Description with genres");
+        filmWithAllFields.setReleaseDate(LocalDate.of(2000, 1, 1));
+        filmWithAllFields.setDuration(120);
         MpaDto mpaWithGenres = new MpaDto();
         mpaWithGenres.setId(1L);
-        filmWithGenres.setMpa(mpaWithGenres);
+        filmWithAllFields.setMpa(mpaWithGenres);
 
         GenreDto comedy = new GenreDto();
         comedy.setId(1L);
         GenreDto drama = new GenreDto();
         drama.setId(2L);
-        filmWithGenres.setGenres(List.of(comedy, drama));
+        filmWithAllFields.setGenres(List.of(comedy, drama));
+
+        directorDtoOne = new DirectorDto();
+        directorDtoOne.setId(1L);
+        directorDtoOne.setName("First Director");
+        directorDtoTwo = new DirectorDto();
+        directorDtoTwo.setId(2L);
+        directorDtoTwo.setName("Second Director");
+        filmWithAllFields.setDirector(List.of(directorDtoOne, directorDtoTwo));
     }
 
     @Test
@@ -163,7 +176,13 @@ class FilmServiceTest {
     @Test
     @Order(6)
     public void testPostFilmWithGenres() {
-        FilmDto createdFilm = filmService.postFilm(filmWithGenres);
+        NewDirectorRequest dReq1 = new NewDirectorRequest();
+        dReq1.setName("First");
+        directorService.createDirector(dReq1);
+        NewDirectorRequest dReq2 = new NewDirectorRequest();
+        dReq2.setName("Second");
+        directorService.createDirector(dReq2);
+        FilmDto createdFilm = filmService.postFilm(filmWithAllFields);
         assertNotNull(createdFilm.getId());
         assertEquals(2, createdFilm.getGenres().size());
     }
@@ -226,7 +245,7 @@ class FilmServiceTest {
     @Order(10)
     public void testGetFilms() {
         filmService.postFilm(newFilm);
-        filmService.postFilm(filmWithGenres);
+        filmService.postFilm(filmWithAllFields);
 
         Collection<FilmDto> films = filmService.getFilms();
         assertTrue(films.size() >= 2);
@@ -291,4 +310,14 @@ class FilmServiceTest {
         Collection<FilmDto> popularFilms = filmService.getPopularFilms(2L);
         assertEquals(2, popularFilms.size());
     }
+
+    @Test
+    @Order(14)
+    public void testGetFilmsByDirector() {
+        Collection<FilmDto> filmDirectorSortYear = filmService.getFilmsByDirector(1L, "year");
+        assertEquals(2, filmDirectorSortYear.size());
+        Collection<FilmDto> filmDirectorSortLikes = filmService.getFilmsByDirector(1L, "likes");
+        assertEquals(2, filmDirectorSortLikes.size());
+    }
+
 }

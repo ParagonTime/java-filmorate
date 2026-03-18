@@ -51,6 +51,6 @@ public class DirectorController {
 
     @DeleteMapping("/{id}")
     public Boolean deleteDirector(@PathVariable("id") Long id) {
-        return  directorService.deleteDirector(id);
+        return directorService.deleteDirector(id);
     }
 }

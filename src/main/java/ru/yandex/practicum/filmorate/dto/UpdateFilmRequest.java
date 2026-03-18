@@ -22,10 +22,6 @@ public class UpdateFilmRequest {
     private List<GenreDto> genres;
     private List<DirectorDto> director;
 
-    public boolean hasId() {
-        return !(id == null || id < 0);
-    }
-
     public boolean hasName() {
         return !(name == null || name.isBlank());
     }

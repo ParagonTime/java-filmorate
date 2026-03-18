@@ -6,11 +6,10 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dto.DirectorDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 
-import java.util.Collection;
 import java.util.List;
 
 @Repository
-public class DirectorRepository extends BaseRepository<DirectorDto>{
+public class DirectorRepository extends BaseRepository<DirectorDto> {
 
     private static final String INSERT_QUERY = "INSERT INTO directors(name) VALUES (?)";
     private static final String FIND_BY_ID = "SELECT * FROM directors WHERE id = ?";
@@ -36,7 +35,7 @@ public class DirectorRepository extends BaseRepository<DirectorDto>{
 
     public DirectorDto getDirector(Long id) {
         return findOne(FIND_BY_ID, id)
-                .orElseThrow(() -> new NotFoundException("Режиссёр с таким id "+ id +" не найден"));
+                .orElseThrow(() -> new NotFoundException("Режиссёр с таким id " + id + " не найден"));
     }
 
     public DirectorDto update(DirectorDto director) {
@@ -48,7 +47,7 @@ public class DirectorRepository extends BaseRepository<DirectorDto>{
         return director;
     }
 
-    public Collection<DirectorDto> getDirectors() {
+    public List<DirectorDto> getDirectors() {
         return findMany(FIND_ALL_DIRECTORS);
     }
 
@@ -60,7 +59,7 @@ public class DirectorRepository extends BaseRepository<DirectorDto>{
         return findMany(FIND_DIRECTORS_BY_FILM, filmId);
     }
 
-    public void saveDirector(Long filmId, Long directorId) {
+    public void saveDirectorForFilm(Long filmId, Long directorId) {
         update(INSERT_FILM_DIRECTOR, filmId, directorId);
     }
 

@@ -56,13 +56,13 @@ public class FilmService {
                     .map(GenreDto::getId)
                     .distinct()
                     .forEach(genreId -> filmRepository.saveGenres(savedFilm.getId(), genreId)
-            );
+                    );
         }
         if (request.getDirector() != null && !request.getDirector().isEmpty()) {
             request.getDirector().stream()
                     .map(DirectorDto::getId)
                     .distinct()
-                    .forEach(directorId -> directorRepository.saveDirector(savedFilm.getId(), directorId));
+                    .forEach(directorId -> directorRepository.saveDirectorForFilm(savedFilm.getId(), directorId));
         }
         return getFilmDto(savedFilm);
     }
@@ -96,7 +96,7 @@ public class FilmService {
             request.getDirector().stream()
                     .map(DirectorDto::getId)
                     .distinct()
-                    .forEach(directorId -> directorRepository.saveDirector(savedFilm.getId(), directorId));
+                    .forEach(directorId -> directorRepository.saveDirectorForFilm(savedFilm.getId(), directorId));
         }
         return getFilmDto(savedFilm);
     }

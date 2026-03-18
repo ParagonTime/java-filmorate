@@ -58,6 +58,8 @@ public class UserService {
     public Collection<UserDto> addFriend(Long id, Long friendId) {
         log.debug("add friend {} user {}", friendId, id);
 
+        Collection<User> users = userRepository.addFriend(id, friendId);
+
         Feed feed = new Feed();
         feed.setUserId(id);
         feed.setTimestamp(System.currentTimeMillis());
@@ -66,7 +68,6 @@ public class UserService {
         feed.setEntityId(friendId);
         feedRepository.addEvent(feed);
 
-        Collection<User> users = userRepository.addFriend(id, friendId);
         return users.stream()
                 .map(userMapper::mapToUserDto)
                 .toList();

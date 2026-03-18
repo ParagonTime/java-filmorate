@@ -102,7 +102,7 @@ class FilmServiceTest {
         directorDtoTwo = new DirectorDto();
         directorDtoTwo.setId(2L);
         directorDtoTwo.setName("Second Director");
-        filmWithAllFields.setDirector(List.of(directorDtoOne, directorDtoTwo));
+        filmWithAllFields.setDirectors(List.of(directorDtoOne, directorDtoTwo));
     }
 
     @Test
@@ -192,7 +192,7 @@ class FilmServiceTest {
         directorDto2.setId(createdDirector2.getId());
         directorDto2.setName(createdDirector2.getName());
 
-        filmWithAllFields.setDirector(List.of(directorDto1, directorDto2));
+        filmWithAllFields.setDirectors(List.of(directorDto1, directorDto2));
 
         FilmDto createdFilm = filmService.postFilm(filmWithAllFields);
         assertNotNull(createdFilm.getId());
@@ -339,7 +339,7 @@ class FilmServiceTest {
         DirectorDto directorForFilm = new DirectorDto();
         directorForFilm.setId(createdDirector.getId());
         directorForFilm.setName(createdDirector.getName());
-        newFilm.setDirector(List.of(directorForFilm));
+        newFilm.setDirectors(List.of(directorForFilm));
 
         FilmDto filmOne = filmService.postFilm(newFilm);
         System.out.println("Created film 1 with id: " + filmOne.getId() + ", directors: " + filmOne.getDirectors());

@@ -74,7 +74,7 @@ public class FilmMapper {
             film.setRatingId(request.getMpa().getId());
         }
         if (request.hasDirector()) {
-            Set<Long> directIds = request.getDirector().stream()
+            Set<Long> directIds = request.getDirectors().stream()
                     .map(DirectorDto::getId)
                     .collect(Collectors.toSet());
             film.setDirectorsIds(directIds);

@@ -58,8 +58,8 @@ public class FilmService {
                     .forEach(genreId -> filmRepository.saveGenres(savedFilm.getId(), genreId)
                     );
         }
-        if (request.getDirector() != null && !request.getDirector().isEmpty()) {
-            request.getDirector().stream()
+        if (request.getDirectors() != null && !request.getDirectors().isEmpty()) {
+            request.getDirectors().stream()
                     .map(DirectorDto::getId)
                     .distinct()
                     .forEach(directorId -> directorRepository.saveDirectorForFilm(savedFilm.getId(), directorId));
@@ -93,7 +93,7 @@ public class FilmService {
         }
         if (request.hasDirector()) {
             directorRepository.deleteDirectors(savedFilm.getId());
-            request.getDirector().stream()
+            request.getDirectors().stream()
                     .map(DirectorDto::getId)
                     .distinct()
                     .forEach(directorId -> directorRepository.saveDirectorForFilm(savedFilm.getId(), directorId));

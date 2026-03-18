@@ -21,5 +21,5 @@ public class NewFilmRequest {
     private Integer duration;
     private MpaDto mpa;
     private List<GenreDto> genres;
-    private List<DirectorDto> director;
+    private List<DirectorDto> directors;
 }

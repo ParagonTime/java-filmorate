@@ -178,10 +178,22 @@ class FilmServiceTest {
     public void testPostFilmWithGenres() {
         NewDirectorRequest dReq1 = new NewDirectorRequest();
         dReq1.setName("First");
-        directorService.createDirector(dReq1);
+        DirectorDto createdDirector1 = directorService.createDirector(dReq1);
+
         NewDirectorRequest dReq2 = new NewDirectorRequest();
         dReq2.setName("Second");
-        directorService.createDirector(dReq2);
+        DirectorDto createdDirector2 = directorService.createDirector(dReq2);
+
+        DirectorDto directorDto1 = new DirectorDto();
+        directorDto1.setId(createdDirector1.getId());
+        directorDto1.setName(createdDirector1.getName());
+
+        DirectorDto directorDto2 = new DirectorDto();
+        directorDto2.setId(createdDirector2.getId());
+        directorDto2.setName(createdDirector2.getName());
+
+        filmWithAllFields.setDirector(List.of(directorDto1, directorDto2));
+
         FilmDto createdFilm = filmService.postFilm(filmWithAllFields);
         assertNotNull(createdFilm.getId());
         assertEquals(2, createdFilm.getGenres().size());
@@ -244,6 +256,11 @@ class FilmServiceTest {
     @Test
     @Order(10)
     public void testGetFilms() {
+        NewDirectorRequest directorRequest = new NewDirectorRequest();
+        directorRequest.setName("First Director");
+        directorService.createDirector(directorRequest);
+        directorRequest.setName("Second Director");
+        directorService.createDirector(directorRequest);
         filmService.postFilm(newFilm);
         filmService.postFilm(filmWithAllFields);
 
@@ -314,9 +331,38 @@ class FilmServiceTest {
     @Test
     @Order(14)
     public void testGetFilmsByDirector() {
-        Collection<FilmDto> filmDirectorSortYear = filmService.getFilmsByDirector(1L, "year");
+        NewDirectorRequest directorRequest = new NewDirectorRequest();
+        directorRequest.setName("Director 1");
+        DirectorDto createdDirector = directorService.createDirector(directorRequest);
+
+        NewFilmRequest film1 = new NewFilmRequest();
+        film1.setName(getNewFilmName() + " - 1");
+        film1.setDescription(newFilm.getDescription());
+        film1.setReleaseDate(newFilm.getReleaseDate());
+        film1.setDuration(newFilm.getDuration());
+        film1.setMpa(newFilm.getMpa());
+
+        DirectorDto directorForFilm = new DirectorDto();
+        directorForFilm.setId(createdDirector.getId());
+        directorForFilm.setName(createdDirector.getName());
+        film1.setDirector(List.of(directorForFilm));
+
+        Long filmOneId = filmService.postFilm(film1).getId();
+
+        NewFilmRequest film2 = new NewFilmRequest();
+        film2.setName(getNewFilmName() + " - 2");
+        film2.setDescription(newFilm.getDescription());
+        film2.setReleaseDate(newFilm.getReleaseDate());
+        film2.setDuration(newFilm.getDuration());
+        film2.setMpa(newFilm.getMpa());
+        film2.setDirector(List.of(directorForFilm));
+
+        Long filmTwoId = filmService.postFilm(film2).getId();
+
+        Collection<FilmDto> filmDirectorSortYear = filmService.getFilmsByDirector(createdDirector.getId(), "year");
         assertEquals(2, filmDirectorSortYear.size());
-        Collection<FilmDto> filmDirectorSortLikes = filmService.getFilmsByDirector(1L, "likes");
+
+        Collection<FilmDto> filmDirectorSortLikes = filmService.getFilmsByDirector(createdDirector.getId(), "likes");
         assertEquals(2, filmDirectorSortLikes.size());
     }
 

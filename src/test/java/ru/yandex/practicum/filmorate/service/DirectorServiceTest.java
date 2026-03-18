@@ -59,11 +59,14 @@ class DirectorServiceTest {
     @Test
     @Order(4)
     public void testGetDirector() {
-        DirectorDto firstDirector = directorService.getDirector(1L);
-        assertEquals("First", firstDirector.getName());
+        NewDirectorRequest directorRequest = new NewDirectorRequest();
+        directorRequest.setName("First Dir");
+        DirectorDto firstCreated = directorService.createDirector(directorRequest);
+        assertEquals("First Dir", firstCreated.getName());
 
-        DirectorDto secondDirector = directorService.getDirector(2L);
-        assertEquals("Second", secondDirector.getName());
+
+        DirectorDto directorDto = directorService.getDirector(firstCreated.getId());
+        assertEquals("First Dir", directorDto.getName());
     }
 
     @Test

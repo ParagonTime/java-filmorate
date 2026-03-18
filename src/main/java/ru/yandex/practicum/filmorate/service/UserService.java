@@ -8,7 +8,11 @@ import ru.yandex.practicum.filmorate.dto.NewUserRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
+import ru.yandex.practicum.filmorate.model.Feed;
+import ru.yandex.practicum.filmorate.model.FeedEventType;
+import ru.yandex.practicum.filmorate.model.FeedOperationType;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.repository.FeedRepository;
 import ru.yandex.practicum.filmorate.repository.UserRepository;
 
 import java.util.Collection;
@@ -20,6 +24,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final FeedRepository feedRepository;
 
     public UserDto postUser(NewUserRequest request) {
         log.debug("create user {}", request);
@@ -52,6 +57,15 @@ public class UserService {
     @Transactional
     public Collection<UserDto> addFriend(Long id, Long friendId) {
         log.debug("add friend {} user {}", friendId, id);
+
+        Feed feed = new Feed();
+        feed.setUserId(id);
+        feed.setTimestamp(System.currentTimeMillis());
+        feed.setEventType(FeedEventType.FRIEND);
+        feed.setOperation(FeedOperationType.ADD);
+        feed.setEntityId(friendId);
+        feedRepository.addEvent(feed);
+
         Collection<User> users = userRepository.addFriend(id, friendId);
         return users.stream()
                 .map(userMapper::mapToUserDto)
@@ -61,6 +75,15 @@ public class UserService {
     @Transactional
     public Collection<UserDto> deleteFriend(Long id, Long friendId) {
         log.debug("delete friend {} user {}", friendId, id);
+
+        Feed feed = new Feed();
+        feed.setUserId(id);
+        feed.setTimestamp(System.currentTimeMillis());
+        feed.setEventType(FeedEventType.FRIEND);
+        feed.setOperation(FeedOperationType.ADD);
+        feed.setEntityId(friendId);
+        feedRepository.addEvent(feed);
+
         Collection<User> users = userRepository.deleteFriend(id, friendId);
         return users.stream()
                 .map(userMapper::mapToUserDto)

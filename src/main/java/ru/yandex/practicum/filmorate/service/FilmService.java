@@ -12,7 +12,11 @@ import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
+import ru.yandex.practicum.filmorate.model.Feed;
+import ru.yandex.practicum.filmorate.model.FeedEventType;
+import ru.yandex.practicum.filmorate.model.FeedOperationType;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.repository.FeedRepository;
 import ru.yandex.practicum.filmorate.repository.FilmRepository;
 import ru.yandex.practicum.filmorate.repository.GenreRepository;
 import ru.yandex.practicum.filmorate.repository.MpaRepository;
@@ -31,6 +35,7 @@ public class FilmService {
     private final MpaRepository mpaRepository;
     private final GenreRepository genreRepository;
     private final FilmMapper filmMapper;
+    private final FeedRepository feedRepository;
 
     @Transactional
     public FilmDto postFilm(NewFilmRequest request) {
@@ -102,12 +107,30 @@ public class FilmService {
     @Transactional
     public Boolean addLike(Long filmId, Long userId) {
         log.debug("add like film {} by user {}", filmId, userId);
+
+        Feed feed = new Feed();
+        feed.setUserId(userId);
+        feed.setTimestamp(System.currentTimeMillis());
+        feed.setEventType(FeedEventType.LIKE);
+        feed.setOperation(FeedOperationType.ADD);
+        feed.setEntityId(filmId);
+        feedRepository.addEvent(feed);
+
         return filmRepository.addLike(filmId, userId);
     }
 
     @Transactional
     public Boolean deleteLike(Long filmId, Long userId) {
         log.debug("delete like film {} by user {}", filmId, userId);
+
+        Feed feed = new Feed();
+        feed.setUserId(userId);
+        feed.setTimestamp(System.currentTimeMillis());
+        feed.setEventType(FeedEventType.LIKE);
+        feed.setOperation(FeedOperationType.REMOVE);
+        feed.setEntityId(filmId);
+        feedRepository.addEvent(feed);
+
         return filmRepository.deleteLike(filmId, userId);
     }
 

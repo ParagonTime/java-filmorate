@@ -334,35 +334,25 @@ class FilmServiceTest {
         NewDirectorRequest directorRequest = new NewDirectorRequest();
         directorRequest.setName("Director 1");
         DirectorDto createdDirector = directorService.createDirector(directorRequest);
-
-        NewFilmRequest film1 = new NewFilmRequest();
-        film1.setName(getNewFilmName() + " - 1");
-        film1.setDescription(newFilm.getDescription());
-        film1.setReleaseDate(newFilm.getReleaseDate());
-        film1.setDuration(newFilm.getDuration());
-        film1.setMpa(newFilm.getMpa());
+        System.out.println("Created director with id: " + createdDirector.getId());
 
         DirectorDto directorForFilm = new DirectorDto();
         directorForFilm.setId(createdDirector.getId());
         directorForFilm.setName(createdDirector.getName());
-        film1.setDirector(List.of(directorForFilm));
+        newFilm.setDirector(List.of(directorForFilm));
 
-        Long filmOneId = filmService.postFilm(film1).getId();
+        FilmDto filmOne = filmService.postFilm(newFilm);
+        System.out.println("Created film 1 with id: " + filmOne.getId() + ", directors: " + filmOne.getDirectors());
 
-        NewFilmRequest film2 = new NewFilmRequest();
-        film2.setName(getNewFilmName() + " - 2");
-        film2.setDescription(newFilm.getDescription());
-        film2.setReleaseDate(newFilm.getReleaseDate());
-        film2.setDuration(newFilm.getDuration());
-        film2.setMpa(newFilm.getMpa());
-        film2.setDirector(List.of(directorForFilm));
-
-        Long filmTwoId = filmService.postFilm(film2).getId();
+        FilmDto filmTwo = filmService.postFilm(newFilm);
+        System.out.println("Created film 2 with id: " + filmTwo.getId() + ", directors: " + filmTwo.getDirectors());
 
         Collection<FilmDto> filmDirectorSortYear = filmService.getFilmsByDirector(createdDirector.getId(), "year");
+        System.out.println("Films by year: " + filmDirectorSortYear.size());
         assertEquals(2, filmDirectorSortYear.size());
 
         Collection<FilmDto> filmDirectorSortLikes = filmService.getFilmsByDirector(createdDirector.getId(), "likes");
+        System.out.println("Films by likes: " + filmDirectorSortLikes.size());
         assertEquals(2, filmDirectorSortLikes.size());
     }
 

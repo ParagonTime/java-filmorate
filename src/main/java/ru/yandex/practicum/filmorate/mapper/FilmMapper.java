@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.dto.NewFilmRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.model.Film;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -46,7 +47,7 @@ public class FilmMapper {
         dto.setMpa(mpaDto);
         dto.setReleaseDate(film.getReleaseDate());
         dto.setDuration(film.getDuration());
-        dto.setDirector(directorDtos);
+        dto.setDirectors(directorDtos != null ? directorDtos : new ArrayList<>());
         return dto;
     }
 

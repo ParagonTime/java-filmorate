@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dto.DirectorDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -56,7 +57,8 @@ public class DirectorRepository extends BaseRepository<DirectorDto> {
     }
 
     public List<DirectorDto> getDirectorsByFilm(Long filmId) {
-        return findMany(FIND_DIRECTORS_BY_FILM, filmId);
+        List<DirectorDto> directors = findMany(FIND_DIRECTORS_BY_FILM, filmId);
+        return directors != null ? directors : new ArrayList<>();
     }
 
     public void saveDirectorForFilm(Long filmId, Long directorId) {

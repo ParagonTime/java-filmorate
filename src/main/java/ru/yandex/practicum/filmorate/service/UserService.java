@@ -75,16 +75,16 @@ public class UserService {
     @Transactional
     public Collection<UserDto> deleteFriend(Long id, Long friendId) {
         log.debug("delete friend {} user {}", friendId, id);
+        Collection<User> users = userRepository.deleteFriend(id, friendId);
 
         Feed feed = new Feed();
         feed.setUserId(id);
         feed.setTimestamp(System.currentTimeMillis());
         feed.setEventType(FeedEventType.FRIEND);
-        feed.setOperation(FeedOperationType.ADD);
+        feed.setOperation(FeedOperationType.REMOVE);
         feed.setEntityId(friendId);
         feedRepository.addEvent(feed);
 
-        Collection<User> users = userRepository.deleteFriend(id, friendId);
         return users.stream()
                 .map(userMapper::mapToUserDto)
                 .toList();

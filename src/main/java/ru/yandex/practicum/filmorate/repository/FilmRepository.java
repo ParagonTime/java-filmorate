@@ -35,7 +35,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             "SELECT f.* FROM films f " +
                     "JOIN film_director fd ON f.id = fd.film_id " +
                     "WHERE fd.director_id = ? " +
-                    "ORDER BY f.release_date DESC";
+                    "ORDER BY f.release_date ASC";
 
     public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper);

@@ -24,6 +24,8 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                     "GROUP BY f.id ORDER BY likes_count DESC LIMIT ?";
     private static final String INSERT_FILM_GENRE = "INSERT INTO film_genre(film_id, genre_id) VALUES (?, ?)";
     private static final String DELETE_FILM_GENRES = "DELETE FROM film_genre WHERE film_id = ?";
+    private static final String FIND_FILMS_LIKED_BY_USER =
+            "SELECT f.* FROM films f JOIN user_like ul ON f.id = ul.film_id WHERE ul.user_id = ?";
 
     public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper);
@@ -89,6 +91,10 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
 
     public void deleteGenres(Long filmId) {
         update(DELETE_FILM_GENRES, filmId);
+    }
+
+    public Collection<Film> getFilmsLikedByUser(Long userId) {
+        return findMany(FIND_FILMS_LIKED_BY_USER, userId);
     }
 }
 

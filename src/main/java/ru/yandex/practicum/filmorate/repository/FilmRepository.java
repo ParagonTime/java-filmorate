@@ -36,6 +36,18 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             GROUP BY f.id, fd.DIRECTOR_ID	
             ORDER BY likes_cnt DESC, f.name, director_name
             """;
+    private static final String FIND_DIRECTOR_FILMS_SORT_BY_LIKES =
+            "SELECT f.*, COUNT(ul.user_id) as likes_count FROM films f " +
+                    "LEFT JOIN user_like ul ON f.id = ul.film_id " +
+                    "JOIN film_director fd ON f.id = fd.film_id " +
+                    "WHERE fd.director_id = ? " +
+                    "GROUP BY f.id " +
+                    "ORDER BY likes_count DESC";
+    private static final String FIND_DIRECTOR_FILMS_SORT_BY_YEAR =
+            "SELECT f.* FROM films f " +
+                    "JOIN film_director fd ON f.id = fd.film_id " +
+                    "WHERE fd.director_id = ? " +
+                    "ORDER BY f.release_date ASC";
 
     public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper);
@@ -101,6 +113,14 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
 
     public void deleteGenres(Long filmId) {
         update(DELETE_FILM_GENRES, filmId);
+    }
+
+    public Collection<Film> getFilmsByDirector(Long directorId, String sortBy) {
+        if (sortBy.equals("year")) {
+            return findMany(FIND_DIRECTOR_FILMS_SORT_BY_YEAR, directorId);
+        } else {
+            return findMany(FIND_DIRECTOR_FILMS_SORT_BY_LIKES, directorId);
+        }
     }
 
     public Collection<Film> getSearchFilms(String query, Boolean searchByDirector, Boolean searchByTitle) {

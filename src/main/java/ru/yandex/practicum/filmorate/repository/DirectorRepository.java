@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.repository;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -21,6 +22,8 @@ public class DirectorRepository extends BaseRepository<DirectorDto> {
     private static final String DELETE_FILM_DIRECTORS = "DELETE FROM film_director WHERE film_id = ?";
     private static final String FIND_DIRECTORS_BY_FILM = "SELECT d.* FROM film_director fd JOIN directors d ON fd.director_id = d.id WHERE fd.film_id = ?";
 
+    private static final String NO_EXIST_DIRECTOR_MESSAGE = "Режиссер с таким id не существует";
+
     public DirectorRepository(JdbcTemplate jdbc, RowMapper<DirectorDto> mapper) {
         super(jdbc, mapper);
     }
@@ -40,11 +43,15 @@ public class DirectorRepository extends BaseRepository<DirectorDto> {
     }
 
     public DirectorDto update(DirectorDto director) {
-        update(
-                UPDATE_QUERY,
-                director.getName(),
-                director.getId()
-        );
+        try {
+            update(
+                    UPDATE_QUERY,
+                    director.getName(),
+                    director.getId()
+            );
+        } catch (DataIntegrityViolationException e) {
+            throw new NotFoundException(NO_EXIST_DIRECTOR_MESSAGE);
+        }
         return director;
     }
 
@@ -53,7 +60,13 @@ public class DirectorRepository extends BaseRepository<DirectorDto> {
     }
 
     public Boolean deleteDirector(Long id) {
-        return update(DELETE_DIRECTOR, id) > 0;
+        int result = 0;
+        try {
+            result = update(DELETE_DIRECTOR, id);
+        } catch (DataIntegrityViolationException e) {
+            throw new NotFoundException(NO_EXIST_DIRECTOR_MESSAGE);
+        }
+        return result > 0;
     }
 
     public List<DirectorDto> getDirectorsByFilm(Long filmId) {
@@ -62,10 +75,18 @@ public class DirectorRepository extends BaseRepository<DirectorDto> {
     }
 
     public void saveDirectorForFilm(Long filmId, Long directorId) {
-        update(INSERT_FILM_DIRECTOR, filmId, directorId);
+        try {
+            update(INSERT_FILM_DIRECTOR, filmId, directorId);
+        } catch (DataIntegrityViolationException e) {
+            throw new NotFoundException(NO_EXIST_DIRECTOR_MESSAGE);
+        }
     }
 
     public void deleteDirectors(Long filmId) {
-        update(DELETE_FILM_DIRECTORS, filmId);
+        try {
+            update(DELETE_FILM_DIRECTORS, filmId);
+        } catch (DataIntegrityViolationException e) {
+            throw new NotFoundException(NO_EXIST_DIRECTOR_MESSAGE);
+        }
     }
 }

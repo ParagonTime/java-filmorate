@@ -20,6 +20,7 @@ import ru.yandex.practicum.filmorate.repository.MpaRepository;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -133,10 +134,22 @@ public class FilmService {
         if (!searchParams.containsKey("query")) {
             throw new ValidationException("Среди параметров нет ключа 'query'. Непонятно, что искать");
         }
+        String query = searchParams.get("query");
+        if (query == null || query.isBlank()) {
+            throw new ValidationException("Неправильно указано значение параметра 'query'. Непонятно, что искать");
+        }
         if (!searchParams.containsKey("by")) {
             throw new ValidationException("Среди параметров нет ключа 'by'. Непонятно, где искать");
         }
-        return filmRepository.getSearchFilms(searchParams).stream()
+        String by = searchParams.get("by");
+        if (by == null || by.isBlank() ||
+                ((!by.trim().toLowerCase().contains("director")) && (!by.trim().toLowerCase().contains("title")))) {
+            throw new ValidationException("Неправильно указано значение параметра 'by'. Непонятно, где искать");
+        }
+        Boolean searchByDirector = by.trim().toLowerCase().contains("director");
+        Boolean searchByTitle = by.trim().toLowerCase().contains("title");
+
+        return filmRepository.getSearchFilms(query, searchByDirector, searchByTitle).stream()
                 .map(this::getFilmDto)
                 .collect(Collectors.toList());
     }

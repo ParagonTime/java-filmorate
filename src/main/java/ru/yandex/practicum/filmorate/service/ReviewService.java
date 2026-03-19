@@ -8,8 +8,13 @@ import ru.yandex.practicum.filmorate.dto.NewReviewRequest;
 import ru.yandex.practicum.filmorate.dto.ReviewDto;
 import ru.yandex.practicum.filmorate.dto.UpdateReviewRequest;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.mapper.FeedMapper;
 import ru.yandex.practicum.filmorate.mapper.ReviewMapper;
+import ru.yandex.practicum.filmorate.model.Feed;
+import ru.yandex.practicum.filmorate.model.FeedEventType;
+import ru.yandex.practicum.filmorate.model.FeedOperationType;
 import ru.yandex.practicum.filmorate.model.Review;
+import ru.yandex.practicum.filmorate.repository.FeedRepository;
 import ru.yandex.practicum.filmorate.repository.FilmRepository;
 import ru.yandex.practicum.filmorate.repository.ReviewRepository;
 import ru.yandex.practicum.filmorate.repository.UserRepository;
@@ -25,6 +30,7 @@ public class ReviewService {
     private final UserRepository userRepository;
     private final FilmRepository filmRepository;
     private final ReviewMapper reviewMapper;
+    private final FeedRepository feedRepository;
 
     @Transactional
     public ReviewDto postReview(NewReviewRequest request) {
@@ -33,6 +39,15 @@ public class ReviewService {
 
         Review review = reviewMapper.mapToReview(request);
         review = reviewRepository.save(review);
+
+        Feed feed = new Feed();
+        feed.setUserId(review.getUserId());
+        feed.setTimestamp(System.currentTimeMillis());
+        feed.setEventType(FeedEventType.REVIEW);
+        feed.setOperation(FeedOperationType.ADD);
+        feed.setEntityId(review.getReviewId());
+        feedRepository.addEvent(feed);
+
         return reviewMapper.mapToReviewDto(review);
     }
 
@@ -44,13 +59,31 @@ public class ReviewService {
         Review review = reviewRepository.getReview(request.getReviewId());
         Review updatedReview = reviewMapper.updateReviewFields(review, request);
         updatedReview = reviewRepository.update(updatedReview);
+
+        Feed feed = new Feed();
+        feed.setUserId(updatedReview.getUserId());
+        feed.setTimestamp(System.currentTimeMillis());
+        feed.setEventType(FeedEventType.REVIEW);
+        feed.setOperation(FeedOperationType.UPDATE);
+        feed.setEntityId(updatedReview.getReviewId());
+        feedRepository.addEvent(feed);
+
         return reviewMapper.mapToReviewDto(updatedReview);
     }
 
     @Transactional
     public void deleteReview(Long reviewId) {
         log.debug("delete review {}", reviewId);
-        reviewRepository.getReview(reviewId);
+        Review review4Delete = reviewRepository.getReview(reviewId);
+
+        Feed feed = new Feed();
+        feed.setUserId(review4Delete.getUserId());
+        feed.setTimestamp(System.currentTimeMillis());
+        feed.setEventType(FeedEventType.REVIEW);
+        feed.setOperation(FeedOperationType.REMOVE);
+        feed.setEntityId(review4Delete.getReviewId());
+        feedRepository.addEvent(feed);
+
         reviewRepository.deleteById(reviewId);
     }
 

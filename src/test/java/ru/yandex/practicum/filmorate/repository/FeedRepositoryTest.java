@@ -35,10 +35,13 @@ public class FeedRepositoryTest {
     private Long user1Id;
     private Long user2Id;
     private Long film1Id;
+    private Long review1Id;
 
     @BeforeEach
     void prepare() {
         jdbcTemplate.update("DELETE FROM events");
+        jdbcTemplate.update("DELETE FROM review_reaction");
+        jdbcTemplate.update("DELETE FROM reviews");
         jdbcTemplate.update("DELETE FROM user_like");
         jdbcTemplate.update("DELETE FROM friendship");
         jdbcTemplate.update("DELETE FROM film_genre");
@@ -49,6 +52,8 @@ public class FeedRepositoryTest {
         user2Id = insertUser("user2@mail.ru", "user2_login", "User Second");
 
         film1Id = insertFilm("Test Film 1", "Test Film 1 Description");
+
+        review1Id = insertReview(user1Id, film1Id, "Test film content", true);
     }
 
     @Test
@@ -83,6 +88,23 @@ public class FeedRepositoryTest {
         assertThat(al.get(0).getEventType()).isEqualTo(FeedEventType.LIKE);
         assertThat(al.get(0).getOperation()).isEqualTo(FeedOperationType.UPDATE);
         assertThat(al.get(0).getEntityId()).isEqualTo(film1Id);
+    }
+
+    @Test
+    void checkCreateAndGetFeed4DelReview() {
+        Instant currentTimestamp = Instant.now();
+        long milliseconds = currentTimestamp.toEpochMilli();
+        Feed feed = makeFeed(user1Id, milliseconds, FeedEventType.REVIEW, FeedOperationType.REMOVE, review1Id);
+        feedRepository.addEvent(feed);
+
+        Collection<Feed> c = feedRepository.getEventsByUserId(user1Id);
+        assertThat(c.size()).isEqualTo(1);
+        ArrayList<Feed> al = new ArrayList<>(c);
+        assertThat(al.get(0).getUserId()).isEqualTo(user1Id);
+        assertThat(al.get(0).getTimestamp()).isEqualTo(milliseconds);
+        assertThat(al.get(0).getEventType()).isEqualTo(FeedEventType.REVIEW);
+        assertThat(al.get(0).getOperation()).isEqualTo(FeedOperationType.REMOVE);
+        assertThat(al.get(0).getEntityId()).isEqualTo(review1Id);
     }
 
 
@@ -132,6 +154,26 @@ public class FeedRepositoryTest {
             ps.setDate(3, Date.valueOf("2020-01-01"));
             ps.setInt(4, 120);
             ps.setLong(5, 1);
+            return ps;
+        }, keyHolder);
+
+        return keyHolder.getKey().longValue();
+    }
+
+    private Long insertReview(Long userId, Long filmId, String content, Boolean isPositive) {
+        String sql = """
+            INSERT INTO reviews(content, is_positive, user_id, film_id)
+            VALUES (?, ?, ?, ?)
+            """;
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, content);
+            ps.setBoolean(2, isPositive);
+            ps.setLong(3, userId);
+            ps.setLong(4, filmId);
             return ps;
         }, keyHolder);
 

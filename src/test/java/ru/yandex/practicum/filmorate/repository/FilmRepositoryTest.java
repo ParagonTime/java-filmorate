@@ -237,4 +237,52 @@ class FilmRepositoryTest {
         Collection<Film> films = filmRepository.getFilms();
         assertTrue(films.size() >= 2);
     }
+
+    @Test
+    @Order(10)
+    public void testGetFilmsLikedByUser() {
+        User testUser = new User();
+        testUser.setName("Test User");
+        testUser.setLogin("testLogin" + System.currentTimeMillis());
+        testUser.setEmail("test" + System.currentTimeMillis() + "@test.com");
+        testUser.setBirthday(LocalDate.of(1990, 1, 1));
+        User savedUser = userRepository.save(testUser);
+
+        Film testFilm1 = new Film();
+        testFilm1.setName("Test Film 1 " + System.currentTimeMillis());
+        testFilm1.setDescription("Description 1");
+        testFilm1.setReleaseDate(LocalDate.of(2000, 1, 1));
+        testFilm1.setDuration(120);
+        testFilm1.setRatingId(1L);
+        Film film1 = filmRepository.save(testFilm1);
+
+        Film testFilm2 = new Film();
+        testFilm2.setName("Test Film 2 " + System.currentTimeMillis());
+        testFilm2.setDescription("Description 2");
+        testFilm2.setReleaseDate(LocalDate.of(2001, 1, 1));
+        testFilm2.setDuration(130);
+        testFilm2.setRatingId(1L);
+        Film film2 = filmRepository.save(testFilm2);
+
+        Film testFilm3 = new Film();
+        testFilm3.setName("Test Film 3 " + System.currentTimeMillis());
+        testFilm3.setDescription("Description 3");
+        testFilm3.setReleaseDate(LocalDate.of(2002, 1, 1));
+        testFilm3.setDuration(140);
+        testFilm3.setRatingId(2L);
+        Film film3 = filmRepository.save(testFilm3);
+
+        Boolean like1 = filmRepository.addLike(film1.getId(), savedUser.getId());
+        Boolean like2 = filmRepository.addLike(film2.getId(), savedUser.getId());
+
+        assertTrue(like1);
+        assertTrue(like2);
+
+        Collection<Film> likedFilms = filmRepository.getFilmsLikedByUser(savedUser.getId());
+
+        assertEquals(2, likedFilms.size());
+        assertTrue(likedFilms.stream().anyMatch(f -> f.getId().equals(film1.getId())));
+        assertTrue(likedFilms.stream().anyMatch(f -> f.getId().equals(film2.getId())));
+        assertTrue(likedFilms.stream().noneMatch(f -> f.getId().equals(film3.getId())));
+    }
 }

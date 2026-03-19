@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.dto.NewReviewRequest;
 import ru.yandex.practicum.filmorate.dto.ReviewDto;
 import ru.yandex.practicum.filmorate.dto.UpdateReviewRequest;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.mapper.FeedMapper;
 import ru.yandex.practicum.filmorate.mapper.ReviewMapper;
 import ru.yandex.practicum.filmorate.model.Feed;
 import ru.yandex.practicum.filmorate.model.FeedEventType;

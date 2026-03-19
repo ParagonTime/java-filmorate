@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.util.Collection;
+import java.util.Map;
 
 @Repository
 public class FilmRepository extends BaseRepository<Film> implements FilmStorage {
@@ -90,5 +91,10 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     public void deleteGenres(Long filmId) {
         update(DELETE_FILM_GENRES, filmId);
     }
+
+    public Collection<Film> getSearchFilms(Map<String, String> searchParams) {
+        return findMany(FIND_POPULAR_FILMS, searchParams);
+    }
+
 }
 

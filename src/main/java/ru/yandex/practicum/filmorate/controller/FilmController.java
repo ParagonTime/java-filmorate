@@ -20,6 +20,7 @@ import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -63,5 +64,10 @@ public class FilmController {
     @GetMapping("/popular")
     public Collection<FilmDto> getPopularFilms(@RequestParam(defaultValue = "10") Long count) {
         return filmService.getPopularFilms(count);
+    }
+
+    @GetMapping("/search")
+    public Collection<FilmDto> getSearchFilms(@RequestParam Map<String, String> searchParams) {
+        return filmService.getSearchFilms(searchParams);
     }
 }

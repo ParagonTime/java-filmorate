@@ -20,6 +20,7 @@ import ru.yandex.practicum.filmorate.repository.MpaRepository;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -123,4 +124,21 @@ public class FilmService {
         List<GenreDto> genres = genreRepository.getAllGenresByFilmId(film.getId());
         return filmMapper.mapToFilmDto(film, mpa, genres);
     }
+
+    public Collection<FilmDto> getSearchFilms(Map<String, String> searchParams) {
+        log.debug("search films by params: {}", searchParams.toString());
+        if (searchParams.size()  != 2) {
+            throw new ValidationException("Не указаны или неверно указаны параметры поиска. Корректный пример: ?query=крад&by=director,title");
+        }
+        if (!searchParams.containsKey("query")) {
+            throw new ValidationException("Среди параметров нет ключа 'query'. Непонятно, что искать");
+        }
+        if (!searchParams.containsKey("by")) {
+            throw new ValidationException("Среди параметров нет ключа 'by'. Непонятно, где искать");
+        }
+        return filmRepository.getSearchFilms(searchParams).stream()
+                .map(this::getFilmDto)
+                .collect(Collectors.toList());
+    }
+
 }

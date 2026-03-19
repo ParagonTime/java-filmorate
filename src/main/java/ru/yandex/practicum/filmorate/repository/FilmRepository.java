@@ -25,17 +25,6 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                     "GROUP BY f.id ORDER BY likes_count DESC LIMIT ?";
     private static final String INSERT_FILM_GENRE = "INSERT INTO film_genre(film_id, genre_id) VALUES (?, ?)";
     private static final String DELETE_FILM_GENRES = "DELETE FROM film_genre WHERE film_id = ?";
-    private static final String SEARCH_FILMS_QUERY = """
-            SELECT f.*, d.NAME AS director_name, count(ul.USER_ID) AS likes_cnt
-            FROM films f
-            LEFT JOIN FILM_DIRECTOR fd ON f.ID = fd.FILM_ID
-            LEFT JOIN DIRECTORS d ON fd.DIRECTOR_ID = d.ID
-            LEFT JOIN USER_LIKE ul ON f.ID = ul.FILM_ID
-            WHERE lower(trim(f.name)) LIKE lower(trim('?'))
-            	OR lower(trim(d.name)) LIKE lower(trim('?'))
-            GROUP BY f.id, fd.DIRECTOR_ID	
-            ORDER BY likes_cnt DESC, f.name, director_name
-            """;
     private static final String FIND_DIRECTOR_FILMS_SORT_BY_LIKES =
             "SELECT f.*, COUNT(ul.user_id) as likes_count FROM films f " +
                     "LEFT JOIN user_like ul ON f.id = ul.film_id " +
@@ -48,6 +37,17 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                     "JOIN film_director fd ON f.id = fd.film_id " +
                     "WHERE fd.director_id = ? " +
                     "ORDER BY f.release_date ASC";
+    private static final String SEARCH_FILMS_QUERY = """
+            SELECT f.*, d.NAME AS director_name, count(ul.USER_ID) AS likes_cnt
+            FROM films f
+            LEFT JOIN FILM_DIRECTOR fd ON f.ID = fd.FILM_ID
+            LEFT JOIN DIRECTORS d ON fd.DIRECTOR_ID = d.ID
+            LEFT JOIN USER_LIKE ul ON f.ID = ul.FILM_ID
+            WHERE lower(trim(f.name)) LIKE lower(trim(?))
+            	OR lower(trim(d.name)) LIKE lower(trim(?))
+            GROUP BY f.id, fd.DIRECTOR_ID	
+            ORDER BY likes_cnt DESC, f.name, director_name
+            """;
 
     public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper);
@@ -124,8 +124,8 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     }
 
     public Collection<Film> getSearchFilms(String query, Boolean searchByDirector, Boolean searchByTitle) {
-        String parSearchByDirector = searchByDirector ? "%" + query.trim().toLowerCase() + "%" : null;
-        String parSearchByTitle = searchByTitle ? "%" + query.trim().toLowerCase() + "%" : null;
+        String parSearchByDirector = searchByDirector ? "'%" + query.trim().toLowerCase() + "%'" : "''";
+        String parSearchByTitle = searchByTitle ? "'%" + query.trim().toLowerCase() + "%'" : "''";
         return findMany(SEARCH_FILMS_QUERY, parSearchByTitle, parSearchByDirector);
     }
 

@@ -20,6 +20,7 @@ import ru.yandex.practicum.filmorate.repository.GenreRepository;
 import ru.yandex.practicum.filmorate.repository.MpaRepository;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -129,7 +130,7 @@ public class FilmService {
     }
 
     public Collection<FilmDto> getPopularFilms(Long count) {
-        log.debug("get popular films: {}", count);
+
         return filmRepository.getPopularFilms(count).stream()
                 .map(this::getFilmDto)
                 .collect(Collectors.toList());
@@ -152,9 +153,7 @@ public class FilmService {
     }
 
     public Collection<FilmDto> getPopularWithGenreByYear(Integer limit, Long genreId, Integer year) {
-        if (limit <= 0 || genreId <= 0 || year <= 0) {
-            throw new ValidationException(NO_NEGATIVE_PARAMETER_MESSAGE);
-        }
+        log.debug("get popular films: genre={} year={} count={}", genreId, year,  limit);
         return filmRepository.getFilmsWithGenreByYear(limit, genreId, year).stream()
                 .map(this::getFilmDto)
                 .toList();

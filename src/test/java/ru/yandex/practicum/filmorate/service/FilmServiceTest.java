@@ -330,14 +330,6 @@ class FilmServiceTest {
 
     @Test
     @Order(14)
-    public void testGetFilmsWithGenreByYearWithThrow() {
-        assertThrows(ValidationException.class, () -> filmService.getPopularWithGenreByYear(10, -10L, 10));
-        assertThrows(ValidationException.class, () -> filmService.getPopularWithGenreByYear(10, 10L, -10));
-        assertThrows(ValidationException.class, () -> filmService.getPopularWithGenreByYear(-10, 10L, 10));
-    }
-
-    @Test
-    @Order(15)
     public void testGetFilmsWithGenreByYear() {
         GenreDto genre = new GenreDto();
         genre.setId(4L);

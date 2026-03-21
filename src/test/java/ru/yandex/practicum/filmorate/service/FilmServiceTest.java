@@ -291,4 +291,41 @@ class FilmServiceTest {
         Collection<FilmDto> popularFilms = filmService.getPopularFilms(2L);
         assertEquals(2, popularFilms.size());
     }
+
+    @Test
+    @Order(14)
+    public void testGetFilmsWithGenreByYearWithThrow() {
+        assertThrows(ValidationException.class, () -> filmService.getPopularWithGenreByYear(10, -10L, 10));
+        assertThrows(ValidationException.class, () -> filmService.getPopularWithGenreByYear(10, 10L, -10));
+        assertThrows(ValidationException.class, () -> filmService.getPopularWithGenreByYear(-10, 10L, 10));
+    }
+
+    @Test
+    @Order(15)
+    public void testGetFilmsWithGenreByYear() {
+        GenreDto genre = new GenreDto();
+        genre.setId(4L);
+        newFilm.setGenres(List.of(genre));
+        newFilm.setReleaseDate(LocalDate.of(2000, 1, 1));
+        filmWithGenres.setGenres(List.of(genre));
+        filmWithGenres.setReleaseDate(LocalDate.of(2000, 1, 1));
+
+        FilmDto filmDto1 = filmService.postFilm(newFilm);
+        FilmDto filmDto2 = filmService.postFilm(filmWithGenres);
+
+        user.setEmail(getNewEmail());
+        userTwo.setEmail(getNewEmail());
+
+        UserDto userDto1 = userService.postUser(user);
+        UserDto userDto2 = userService.postUser(userTwo);
+
+        filmService.addLike(filmDto1.getId(), userDto1.getId());
+        filmService.addLike(filmDto1.getId(), userDto2.getId());
+        filmService.addLike(filmDto2.getId(), userDto1.getId());
+
+        Collection<FilmDto> films = filmService.getPopularWithGenreByYear(10, 4L, 2000);
+
+        assertEquals(2, films.size());
+        assertEquals(filmDto1.getId(), films.stream().toList().getFirst().getId());
+    }
 }

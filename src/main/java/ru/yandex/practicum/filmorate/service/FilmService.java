@@ -32,6 +32,8 @@ public class FilmService {
     private final GenreRepository genreRepository;
     private final FilmMapper filmMapper;
 
+    private static final String NO_NEGATIVE_PARAMETER_MESSAGE = "Парамерты не могут быть меньше 0";
+
     @Transactional
     public FilmDto postFilm(NewFilmRequest request) {
         log.debug("create film: {}", request);
@@ -53,7 +55,7 @@ public class FilmService {
                     .map(GenreDto::getId)
                     .distinct()
                     .forEach(genreId -> filmRepository.saveGenres(savedFilm.getId(), genreId)
-            );
+                    );
         }
         return getFilmDto(savedFilm);
     }
@@ -122,5 +124,14 @@ public class FilmService {
         MpaDto mpa = mpaRepository.getMpaById(film.getRatingId()).orElse(null);
         List<GenreDto> genres = genreRepository.getAllGenresByFilmId(film.getId());
         return filmMapper.mapToFilmDto(film, mpa, genres);
+    }
+
+    public Collection<FilmDto> getPopularWithGenreByYear(Integer limit, Long genreId, Integer year) {
+        if (limit <= 0 || genreId <= 0 || year <= 0) {
+            throw new ValidationException(NO_NEGATIVE_PARAMETER_MESSAGE);
+        }
+        return filmRepository.getFilmsWithGenreByYear(limit, genreId, year).stream()
+                .map(this::getFilmDto)
+                .toList();
     }
 }

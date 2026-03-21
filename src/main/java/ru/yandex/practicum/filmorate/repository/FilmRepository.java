@@ -24,6 +24,13 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                     "GROUP BY f.id ORDER BY likes_count DESC LIMIT ?";
     private static final String INSERT_FILM_GENRE = "INSERT INTO film_genre(film_id, genre_id) VALUES (?, ?)";
     private static final String DELETE_FILM_GENRES = "DELETE FROM film_genre WHERE film_id = ?";
+    private static final String FIND_FILM_GENRE_YEAR =
+            "SELECT f.*, COUNT(ul.user_id) as likes_count " +
+                    "FROM films f " +
+                    "JOIN film_genre fg ON f.id = fg.film_id " +
+                    "LEFT JOIN user_like ul ON f.id = ul.film_id " +
+                    "WHERE fg.genre_id = ? AND EXTRACT(YEAR FROM f.release_date) = ? " +
+                    "GROUP BY f.id ORDER BY likes_count DESC LIMIT ?";
 
     public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper);
@@ -89,6 +96,10 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
 
     public void deleteGenres(Long filmId) {
         update(DELETE_FILM_GENRES, filmId);
+    }
+
+    public Collection<Film> getFilmsWithGenreByYear(Integer limit, Long genreId, Integer year) {
+        return findMany(FIND_FILM_GENRE_YEAR, genreId, year, limit);
     }
 }
 

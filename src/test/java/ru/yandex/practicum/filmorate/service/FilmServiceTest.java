@@ -343,11 +343,11 @@ class FilmServiceTest {
         genre.setId(4L);
         newFilm.setGenres(List.of(genre));
         newFilm.setReleaseDate(LocalDate.of(2000, 1, 1));
-        filmWithGenres.setGenres(List.of(genre));
-        filmWithGenres.setReleaseDate(LocalDate.of(2000, 1, 1));
+        filmWithAllFields.setGenres(List.of(genre));
+        filmWithAllFields.setReleaseDate(LocalDate.of(2000, 1, 1));
 
         FilmDto filmDto1 = filmService.postFilm(newFilm);
-        FilmDto filmDto2 = filmService.postFilm(filmWithGenres);
+        FilmDto filmDto2 = filmService.postFilm(filmWithAllFields);
 
         user.setEmail(getNewEmail());
         userTwo.setEmail(getNewEmail());

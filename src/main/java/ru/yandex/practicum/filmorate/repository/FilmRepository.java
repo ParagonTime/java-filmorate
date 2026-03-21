@@ -96,5 +96,9 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     public Collection<Film> getFilmsLikedByUser(Long userId) {
         return findMany(FIND_FILMS_LIKED_BY_USER, userId);
     }
+
+    public JdbcTemplate getJdbc() {
+        return jdbc;
+    }
 }
 

@@ -32,9 +32,7 @@ public class RecommendationService {
     public Collection<FilmDto> getRecommendations(Long userId) {
         User user = userRepository.getUser(userId);
 
-        Collection<Film> allFilms = filmRepository.getFilms();
-
-        Set<Long> userLikedFilmIds = getUserLikedFilmIds(userId, allFilms);
+        Set<Long> userLikedFilmIds = getLikedFilmIds(userId);
 
         log.debug("user {} liked {} films", userId, userLikedFilmIds.size());
 
@@ -43,85 +41,81 @@ public class RecommendationService {
             return Collections.emptyList();
         }
 
-        Map<Long, Set<Long>> otherUsersLikes = getOtherUsersLikes(userId, allFilms);
+        Long similarUserId = findSimilarUser(userId, userLikedFilmIds);
 
-        Long similarUser = findUserWithMaxIntersection(userLikedFilmIds, otherUsersLikes);
-
-        if (similarUser == null) {
-            log.debug("No similar user found for user {}", userId);
+        if (similarUserId == null) {
+            log.debug("no similar user found for user {}", userId);
             return Collections.emptyList();
         }
 
-        log.debug("found similar user {} for user {}", similarUser, userId);
+        log.debug("found similar user {} for user {}", similarUserId, userId);
 
-        Set<Long> recommendations = getRecommendationsFromUser(
-                similarUser, userLikedFilmIds, otherUsersLikes);
+        Set<Long> recommendedFilmIds = getRecommendationsFromUser(similarUserId, userLikedFilmIds);
 
         log.debug("found {} recommendations for user {} from similar user {}",
-                recommendations.size(), userId, similarUser);
+                recommendedFilmIds.size(), userId, similarUserId);
 
-        return recommendations.stream()
+        return recommendedFilmIds.stream()
                 .map(this::getFilmDtoWithDetails)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    private Set<Long> getUserLikedFilmIds(Long userId, Collection<Film> allFilms) {
-        return allFilms.stream()
-                .filter(film -> film.getUsersLiked().contains(userId))
-                .map(Film::getId)
-                .collect(Collectors.toSet());
-    }
+    private Set<Long> getLikedFilmIds(Long userId) {
+        Collection<Film> films = filmRepository.getFilms();
+        Set<Long> likedFilmIds = new HashSet<>();
 
-    private Map<Long, Set<Long>> getOtherUsersLikes(Long currentUserId, Collection<Film> allFilms) {
-        Map<Long, Set<Long>> usersLikes = new HashMap<>();
-
-        for (Film film : allFilms) {
-            for (Long userId : film.getUsersLiked()) {
-                if (!userId.equals(currentUserId)) {
-                    usersLikes.computeIfAbsent(userId, k -> new HashSet<>())
-                            .add(film.getId());
-                }
+        for (Film film : films) {
+            if (isFilmLikedByUser(film.getId(), userId)) {
+                likedFilmIds.add(film.getId());
             }
         }
 
-        return usersLikes;
+        return likedFilmIds;
     }
 
-    private Long findUserWithMaxIntersection(Set<Long> targetUserLikes,
-                                             Map<Long, Set<Long>> otherUsersLikes) {
-        Map<Long, Integer> intersections = new HashMap<>();
+    private boolean isFilmLikedByUser(Long filmId, Long userId) {
+        String sql = "SELECT COUNT(*) FROM user_like WHERE film_id = ? AND user_id = ?";
+        Integer count = filmRepository.getJdbc().queryForObject(sql, Integer.class, filmId, userId);
+        return count != null && count > 0;
+    }
 
-        for (Map.Entry<Long, Set<Long>> entry : otherUsersLikes.entrySet()) {
-            Long userId = entry.getKey();
-            Set<Long> userLikes = entry.getValue();
+    private Long findSimilarUser(Long currentUserId, Set<Long> userLikedFilmIds) {
+        String sql = "SELECT user_id, COUNT(*) as common_likes " +
+                "FROM user_like " +
+                "WHERE user_id != ? AND film_id IN (" +
+                userLikedFilmIds.stream().map(id -> "?").collect(Collectors.joining(",")) + ") " +
+                "GROUP BY user_id " +
+                "ORDER BY common_likes DESC " +
+                "LIMIT 1";
 
-            Set<Long> intersection = new HashSet<>(targetUserLikes);
-            intersection.retainAll(userLikes);
+        List<Object> params = new ArrayList<>();
+        params.add(currentUserId);
+        params.addAll(userLikedFilmIds);
 
-            if (!intersection.isEmpty()) {
-                intersections.put(userId, intersection.size());
-            }
+        try {
+            return filmRepository.getJdbc().queryForObject(sql, (rs, rowNum) -> rs.getLong("user_id"), params.toArray());
+        } catch (Exception e) {
+            log.debug("No similar user found: {}", e.getMessage());
+            return null;
         }
-
-        return intersections.entrySet().stream()
-                .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
-                .orElse(null);
     }
 
-    private Set<Long> getRecommendationsFromUser(Long similarUserId,
-                                                 Set<Long> targetUserLikes,
-                                                 Map<Long, Set<Long>> otherUsersLikes) {
-        Set<Long> similarUserLikes = otherUsersLikes.get(similarUserId);
-        if (similarUserLikes == null) {
+    private Set<Long> getRecommendationsFromUser(Long similarUserId, Set<Long> userLikedFilmIds) {
+        String sql = "SELECT film_id FROM user_like WHERE user_id = ? AND film_id NOT IN (" +
+                userLikedFilmIds.stream().map(id -> "?").collect(Collectors.joining(",")) + ")";
+
+        List<Object> params = new ArrayList<>();
+        params.add(similarUserId);
+        params.addAll(userLikedFilmIds);
+
+        try {
+            List<Long> recommendedIds = filmRepository.getJdbc().queryForList(sql, Long.class, params.toArray());
+            return new HashSet<>(recommendedIds);
+        } catch (Exception e) {
+            log.debug("Error getting recommendations: {}", e.getMessage());
             return Collections.emptySet();
         }
-
-        Set<Long> recommendations = new HashSet<>(similarUserLikes);
-        recommendations.removeAll(targetUserLikes);
-
-        return recommendations;
     }
 
     private FilmDto getFilmDtoWithDetails(Long filmId) {

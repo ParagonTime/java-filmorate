@@ -10,8 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
+import ru.yandex.practicum.filmorate.dto.DirectorDto;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.DirectorRowMapper;
 import ru.yandex.practicum.filmorate.mapper.FilmRowMapper;
 import ru.yandex.practicum.filmorate.mapper.GenreRowMapper;
 import ru.yandex.practicum.filmorate.mapper.MpaRowMapper;
@@ -34,13 +36,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Import({FilmRepository.class, FilmRowMapper.class,
         MpaRowMapper.class, GenreRepository.class,
         GenreRowMapper.class, UserRepository.class,
-        UserRowMapper.class})
+        UserRowMapper.class, DirectorRepository.class,
+        DirectorDto.class, DirectorRowMapper.class})
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class FilmRepositoryTest {
     private final FilmRepository filmRepository;
     private final GenreRepository genreRepository;
     private final UserRepository userRepository;
+    private final DirectorRepository directorRepository;
     private static Film film;
     private static User user;
     private static int nameCount;
@@ -68,6 +72,7 @@ class FilmRepositoryTest {
         film.setDuration(120);
         film.setRatingId(1L);
         film.setGenresIds(new HashSet<>());
+        film.setDirectorsIds(new HashSet<>(List.of(1L, 2L)));
 
         user = new User();
         user.setName("User");
@@ -240,6 +245,20 @@ class FilmRepositoryTest {
 
     @Test
     @Order(10)
+    public void testGetFilmsByDirector() {
+        DirectorDto director = new DirectorDto();
+        director.setName("First Director");
+        DirectorDto savedDirector = directorRepository.save(director);
+        Long filmId = filmRepository.save(film).getId();
+        directorRepository.saveDirectorForFilm(filmId, 1L);
+        Collection<Film> filmsDirectorSortYear = filmRepository.getFilmsByDirector(1L, "year");
+        assertEquals(1, filmsDirectorSortYear.size());
+        Collection<Film> filmsDirectorSortLikes = filmRepository.getFilmsByDirector(1L, "likes");
+        assertEquals(1, filmsDirectorSortLikes.size());
+    }
+
+    @Test
+    @Order(11)
     public void testGetFilmsWithGenreByYear() {
         film.setReleaseDate(LocalDate.of(2000, 1, 1));
 

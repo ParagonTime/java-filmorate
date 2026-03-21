@@ -20,10 +20,7 @@ public class UpdateFilmRequest {
     private Integer duration;
     private MpaDto mpa;
     private List<GenreDto> genres;
-
-    public boolean hasId() {
-        return !(id == null || id < 0);
-    }
+    private List<DirectorDto> directors;
 
     public boolean hasName() {
         return !(name == null || name.isBlank());
@@ -47,5 +44,9 @@ public class UpdateFilmRequest {
 
     public boolean hasGenres() {
         return !(genres == null || genres.isEmpty());
+    }
+
+    public boolean hasDirector() {
+        return !(directors == null || directors.isEmpty());
     }
 }

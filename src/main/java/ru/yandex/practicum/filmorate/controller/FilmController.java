@@ -65,6 +65,14 @@ public class FilmController {
         return filmService.getPopularFilms(count);
     }
 
+    @GetMapping("/director/{directorId}")
+    public Collection<FilmDto> getFilmsByDirector(
+            @PathVariable("directorId") Long directorId,
+            @RequestParam(required = false, defaultValue = "likes") String sortBy
+    ) {
+        return filmService.getFilmsByDirector(directorId, sortBy);
+    }
+
     @GetMapping(value = "/popular", params = {"genreId", "year"})
     public Collection<FilmDto> getPopularWithGenreByYear(
             @RequestParam(name = "count", defaultValue = "10") Integer limit,

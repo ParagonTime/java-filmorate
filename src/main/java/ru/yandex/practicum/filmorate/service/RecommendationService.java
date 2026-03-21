@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dto.DirectorDto;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
 import ru.yandex.practicum.filmorate.dto.MpaDto;
@@ -123,7 +124,8 @@ public class RecommendationService {
             Film film = filmRepository.getFilm(filmId);
             MpaDto mpa = mpaRepository.getMpaById(film.getRatingId()).orElse(null);
             List<GenreDto> genres = genreRepository.getAllGenresByFilmId(film.getId());
-            return filmMapper.mapToFilmDto(film, mpa, genres);
+            List<DirectorDto> directors = Collections.emptyList();
+            return filmMapper.mapToFilmDto(film, mpa, genres, directors);
         } catch (NotFoundException e) {
             log.warn("film with id {} not found", filmId);
             return null;

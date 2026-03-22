@@ -151,6 +151,21 @@ public class FilmService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public void deleteFilm(Long filmId) {
+        log.debug("delete film with id {}", filmId);
+
+        filmRepository.deleteGenres(filmId);
+
+        directorRepository.deleteDirectors(filmId);
+
+        boolean deleted = filmRepository.deleteFilm(filmId);
+
+        if (!deleted) {
+            throw new NotFoundException("Не удалось удалить фильм с id " + filmId);
+        }
+    }
+  
     public Collection<FilmDto> getSearchFilms(Map<String, String> searchParams) {
         log.debug("search films by params: {}", searchParams.toString());
         if (searchParams.size()  != 2) {

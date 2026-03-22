@@ -49,6 +49,8 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             """;
 
 
+    private static final String DELETE_FILM_QUERY = "DELETE FROM films WHERE id = ?";
+
     public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper);
     }
@@ -121,6 +123,10 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
         } else {
             return findMany(FIND_DIRECTOR_FILMS_SORT_BY_LIKES, directorId);
         }
+    }
+  
+    public boolean deleteFilm(Long filmId) {
+        return delete(DELETE_FILM_QUERY, filmId);
     }
 
     public Collection<Film> getSearchFilms(String query, Boolean searchByDirector, Boolean searchByTitle) {

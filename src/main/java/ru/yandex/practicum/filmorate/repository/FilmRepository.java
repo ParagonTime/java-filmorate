@@ -44,7 +44,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             LEFT JOIN USER_LIKE ul ON f.ID = ul.FILM_ID
             WHERE lower(trim(f.name)) LIKE lower(trim(?))
             	OR lower(trim(d.name)) LIKE lower(trim(?))
-            GROUP BY f.id, fd.DIRECTOR_ID	
+            GROUP BY f.id, fd.DIRECTOR_ID
             ORDER BY likes_count DESC, f.name, director_name
             """;
 
@@ -124,7 +124,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             return findMany(FIND_DIRECTOR_FILMS_SORT_BY_LIKES, directorId);
         }
     }
-  
+
     public boolean deleteFilm(Long filmId) {
         return delete(DELETE_FILM_QUERY, filmId);
     }

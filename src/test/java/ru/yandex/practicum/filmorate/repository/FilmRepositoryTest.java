@@ -27,9 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @JdbcTest
 @AutoConfigureTestDatabase
@@ -256,4 +254,33 @@ class FilmRepositoryTest {
         Collection<Film> filmsDirectorSortLikes = filmRepository.getFilmsByDirector(1L, "likes");
         assertEquals(1, filmsDirectorSortLikes.size());
     }
+
+    @Test
+    @Order(11)
+    public void testSearchFilmsByDirector() {
+        DirectorDto director = new DirectorDto();
+        director.setName("Eleventh Test Director");
+        DirectorDto savedDirector = directorRepository.save(director);
+        Long filmId = filmRepository.save(film).getId();
+        directorRepository.saveDirectorForFilm(filmId, savedDirector.getId());
+        Collection<Film> filmsSearchedByDirector = filmRepository.getSearchFilms("eleven", true, false);
+        assertEquals(1, filmsSearchedByDirector.size());
+    }
+
+    @Test
+    @Order(12)
+    public void testSearchFilmsByTitle() {
+        film.setName("Twelfth Test Film");
+        Long filmId = filmRepository.save(film).getId();
+        Collection<Film> filmsSearchedByTitle = filmRepository.getSearchFilms("twel", false, true);
+        assertNotEquals(0, filmsSearchedByTitle.size());
+    }
+
+    @Test
+    @Order(13)
+    public void testSearchFilmsByTitleDirector() {
+        Collection<Film> filmsSearchedByTitleDirector = filmRepository.getSearchFilms("DummyString", true, true);
+        assertEquals(0, filmsSearchedByTitleDirector.size());
+    }
+
 }

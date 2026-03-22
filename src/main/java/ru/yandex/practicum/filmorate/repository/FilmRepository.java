@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.util.Collection;
-import java.util.Map;
 
 @Repository
 public class FilmRepository extends BaseRepository<Film> implements FilmStorage {
@@ -38,7 +37,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                     "WHERE fd.director_id = ? " +
                     "ORDER BY f.release_date ASC";
     private static final String SEARCH_FILMS_QUERY = """
-            SELECT f.*, d.NAME AS director_name, count(ul.USER_ID) AS likes_cnt
+            SELECT f.*, d.name as director_name, count(ul.USER_ID) AS likes_count
             FROM films f
             LEFT JOIN FILM_DIRECTOR fd ON f.ID = fd.FILM_ID
             LEFT JOIN DIRECTORS d ON fd.DIRECTOR_ID = d.ID
@@ -46,8 +45,9 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             WHERE lower(trim(f.name)) LIKE lower(trim(?))
             	OR lower(trim(d.name)) LIKE lower(trim(?))
             GROUP BY f.id, fd.DIRECTOR_ID	
-            ORDER BY likes_cnt DESC, f.name, director_name
+            ORDER BY likes_count DESC, f.name, director_name
             """;
+
 
     public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper);
@@ -124,8 +124,8 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     }
 
     public Collection<Film> getSearchFilms(String query, Boolean searchByDirector, Boolean searchByTitle) {
-        String parSearchByDirector = searchByDirector ? "'%" + query.trim().toLowerCase() + "%'" : "''";
-        String parSearchByTitle = searchByTitle ? "'%" + query.trim().toLowerCase() + "%'" : "''";
+        String parSearchByDirector = searchByDirector ? "%" + query.trim().toLowerCase() + "%" : "''";
+        String parSearchByTitle = searchByTitle ? "%" + query.trim().toLowerCase() + "%" : "''";
         return findMany(SEARCH_FILMS_QUERY, parSearchByTitle, parSearchByDirector);
     }
 

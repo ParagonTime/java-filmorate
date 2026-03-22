@@ -60,8 +60,9 @@ public class FeedRepositoryTest {
     void checkCreateAndGetFeed4AddFriend() {
         Instant currentTimestamp = Instant.now();
         long milliseconds = currentTimestamp.toEpochMilli();
-        Feed feed = makeFeed(user1Id, milliseconds, FeedEventType.FRIEND, FeedOperationType.ADD, user2Id);
-        feedRepository.addEvent(feed);
+        /*Feed feed = makeFeed(user1Id, milliseconds, FeedEventType.FRIEND, FeedOperationType.ADD, user2Id);
+        feedRepository.addEvent(feed);*/
+        feedRepository.addEventByParams(user1Id, milliseconds, FeedEventType.FRIEND, FeedOperationType.ADD, user2Id);
 
         Collection<Feed> c = feedRepository.getEventsByUserId(user1Id);
         assertThat(c.size()).isEqualTo(1);
@@ -77,8 +78,8 @@ public class FeedRepositoryTest {
     void checkCreateAndGetFeed4UpdFilmLike() {
         Instant currentTimestamp = Instant.now();
         long milliseconds = currentTimestamp.toEpochMilli();
-        Feed feed = makeFeed(user1Id, milliseconds, FeedEventType.LIKE, FeedOperationType.UPDATE, film1Id);
-        feedRepository.addEvent(feed);
+
+        feedRepository.addEventByParams(user1Id, milliseconds, FeedEventType.LIKE, FeedOperationType.UPDATE, film1Id);
 
         Collection<Feed> c = feedRepository.getEventsByUserId(user1Id);
         assertThat(c.size()).isEqualTo(1);
@@ -94,8 +95,8 @@ public class FeedRepositoryTest {
     void checkCreateAndGetFeed4DelReview() {
         Instant currentTimestamp = Instant.now();
         long milliseconds = currentTimestamp.toEpochMilli();
-        Feed feed = makeFeed(user1Id, milliseconds, FeedEventType.REVIEW, FeedOperationType.REMOVE, review1Id);
-        feedRepository.addEvent(feed);
+
+        feedRepository.addEventByParams(user1Id, milliseconds, FeedEventType.REVIEW, FeedOperationType.REMOVE, review1Id);
 
         Collection<Feed> c = feedRepository.getEventsByUserId(user1Id);
         assertThat(c.size()).isEqualTo(1);
@@ -105,18 +106,6 @@ public class FeedRepositoryTest {
         assertThat(al.get(0).getEventType()).isEqualTo(FeedEventType.REVIEW);
         assertThat(al.get(0).getOperation()).isEqualTo(FeedOperationType.REMOVE);
         assertThat(al.get(0).getEntityId()).isEqualTo(review1Id);
-    }
-
-
-
-    private Feed makeFeed(Long userId, Long timestamp, FeedEventType eventType, FeedOperationType operation, Long entityId) {
-        Feed feed = new Feed();
-        feed.setUserId(userId);
-        feed.setTimestamp(timestamp);
-        feed.setEventType(eventType);
-        feed.setOperation(operation);
-        feed.setEntityId(entityId);
-        return feed;
     }
 
     private Long insertUser(String email, String login, String name) {

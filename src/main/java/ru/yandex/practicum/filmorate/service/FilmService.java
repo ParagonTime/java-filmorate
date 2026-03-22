@@ -13,7 +13,6 @@ import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
-import ru.yandex.practicum.filmorate.model.Feed;
 import ru.yandex.practicum.filmorate.model.FeedEventType;
 import ru.yandex.practicum.filmorate.model.FeedOperationType;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -122,30 +121,14 @@ public class FilmService {
     @Transactional
     public Boolean addLike(Long filmId, Long userId) {
         log.debug("add like film {} by user {}", filmId, userId);
-
-        Feed feed = new Feed();
-        feed.setUserId(userId);
-        feed.setTimestamp(System.currentTimeMillis());
-        feed.setEventType(FeedEventType.LIKE);
-        feed.setOperation(FeedOperationType.ADD);
-        feed.setEntityId(filmId);
-        feedRepository.addEvent(feed);
-
+        feedRepository.addEventByParams(userId, System.currentTimeMillis(), FeedEventType.LIKE, FeedOperationType.ADD, filmId);
         return filmRepository.addLike(filmId, userId);
     }
 
     @Transactional
     public Boolean deleteLike(Long filmId, Long userId) {
         log.debug("delete like film {} by user {}", filmId, userId);
-
-        Feed feed = new Feed();
-        feed.setUserId(userId);
-        feed.setTimestamp(System.currentTimeMillis());
-        feed.setEventType(FeedEventType.LIKE);
-        feed.setOperation(FeedOperationType.REMOVE);
-        feed.setEntityId(filmId);
-        feedRepository.addEvent(feed);
-
+        feedRepository.addEventByParams(userId, System.currentTimeMillis(), FeedEventType.LIKE, FeedOperationType.REMOVE, filmId);
         return filmRepository.deleteLike(filmId, userId);
     }
 

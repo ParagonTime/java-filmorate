@@ -6,6 +6,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Feed;
+import ru.yandex.practicum.filmorate.model.FeedEventType;
+import ru.yandex.practicum.filmorate.model.FeedOperationType;
 
 import java.util.Collection;
 
@@ -24,20 +26,23 @@ public class FeedRepository extends BaseRepository<Feed> {
         return findMany(SELECT_EVENTS_BY_USER_ID, userId);
     }
 
-    public void addEvent(Feed feed) {
+    public void addEventByParams(Long userId, Long timeStamp, FeedEventType eventType, FeedOperationType operationType, Long entityId) {
         try {
             insert(INSERT_EVENT,
-                    feed.getUserId(),
-                    feed.getTimestamp(),
-                    feed.getEventType().name(),
-                    feed.getOperation().name(),
-                    feed.getEntityId());
-            log.debug("Событие добавлено: {}", feed);
+                    userId,
+                    timeStamp,
+                    eventType.name(),
+                    operationType.name(),
+                    entityId);
+            log.debug("Событие добавлено: {}",
+                    "userId = " + userId + "; timeStamp = " + timeStamp + "; eventType = " + eventType.name() +
+                    "; operationType = " + operationType.name() + "; entityId = " + entityId);
         } catch (Exception e) {
             log.error("Ошибка при добавлении события: {}", e.getMessage());
             throw e;
         }
     }
+
 
 
 }

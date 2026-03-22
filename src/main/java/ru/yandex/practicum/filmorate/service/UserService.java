@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
-import ru.yandex.practicum.filmorate.model.Feed;
 import ru.yandex.practicum.filmorate.model.FeedEventType;
 import ru.yandex.practicum.filmorate.model.FeedOperationType;
 import ru.yandex.practicum.filmorate.model.User;
@@ -58,17 +57,8 @@ public class UserService {
     @Transactional
     public Collection<UserDto> addFriend(Long id, Long friendId) {
         log.debug("add friend {} user {}", friendId, id);
-
         Collection<User> users = userRepository.addFriend(id, friendId);
-
-        Feed feed = new Feed();
-        feed.setUserId(id);
-        feed.setTimestamp(System.currentTimeMillis());
-        feed.setEventType(FeedEventType.FRIEND);
-        feed.setOperation(FeedOperationType.ADD);
-        feed.setEntityId(friendId);
-        feedRepository.addEvent(feed);
-
+        feedRepository.addEventByParams(id, System.currentTimeMillis(), FeedEventType.FRIEND, FeedOperationType.ADD, friendId);
         return users.stream()
                 .map(userMapper::mapToUserDto)
                 .toList();
@@ -78,15 +68,7 @@ public class UserService {
     public Collection<UserDto> deleteFriend(Long id, Long friendId) {
         log.debug("delete friend {} user {}", friendId, id);
         Collection<User> users = userRepository.deleteFriend(id, friendId);
-
-        Feed feed = new Feed();
-        feed.setUserId(id);
-        feed.setTimestamp(System.currentTimeMillis());
-        feed.setEventType(FeedEventType.FRIEND);
-        feed.setOperation(FeedOperationType.REMOVE);
-        feed.setEntityId(friendId);
-        feedRepository.addEvent(feed);
-
+        feedRepository.addEventByParams(id, System.currentTimeMillis(), FeedEventType.FRIEND, FeedOperationType.REMOVE, friendId);
         return users.stream()
                 .map(userMapper::mapToUserDto)
                 .toList();

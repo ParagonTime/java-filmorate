@@ -22,7 +22,6 @@ import ru.yandex.practicum.filmorate.repository.MpaRepository;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -165,7 +164,7 @@ public class FilmService {
             throw new NotFoundException("Не удалось удалить фильм с id " + filmId);
         }
     }
-  
+
     public Collection<FilmDto> getSearchFilms(Map<String, String> searchParams) {
         log.debug("search films by params: {}", searchParams.toString());
         if (searchParams.size()  != 2) {

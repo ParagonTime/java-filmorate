@@ -345,7 +345,7 @@ class FilmRepositoryTest {
         boolean deleted = filmRepository.deleteFilm(999L);
         assertFalse(deleted);
     }
-  
+
     @Test
     @Order(16)
     public void testSearchFilmsByDirector() {
@@ -373,5 +373,5 @@ class FilmRepositoryTest {
         Collection<Film> filmsSearchedByTitleDirector = filmRepository.getSearchFilms("DummyString", true, true);
         assertEquals(0, filmsSearchedByTitleDirector.size());
     }
-  
+
 }

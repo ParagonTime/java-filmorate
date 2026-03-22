@@ -10,8 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
+import ru.yandex.practicum.filmorate.dto.DirectorDto;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mapper.DirectorRowMapper;
 import ru.yandex.practicum.filmorate.mapper.FilmRowMapper;
 import ru.yandex.practicum.filmorate.mapper.GenreRowMapper;
 import ru.yandex.practicum.filmorate.mapper.MpaRowMapper;
@@ -25,22 +27,22 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @JdbcTest
 @AutoConfigureTestDatabase
 @Import({FilmRepository.class, FilmRowMapper.class,
         MpaRowMapper.class, GenreRepository.class,
         GenreRowMapper.class, UserRepository.class,
-        UserRowMapper.class})
+        UserRowMapper.class, DirectorRepository.class,
+        DirectorDto.class, DirectorRowMapper.class})
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class FilmRepositoryTest {
     private final FilmRepository filmRepository;
     private final GenreRepository genreRepository;
     private final UserRepository userRepository;
+    private final DirectorRepository directorRepository;
     private static Film film;
     private static User user;
     private static int nameCount;
@@ -68,6 +70,7 @@ class FilmRepositoryTest {
         film.setDuration(120);
         film.setRatingId(1L);
         film.setGenresIds(new HashSet<>());
+        film.setDirectorsIds(new HashSet<>(List.of(1L, 2L)));
 
         user = new User();
         user.setName("User");
@@ -236,5 +239,110 @@ class FilmRepositoryTest {
 
         Collection<Film> films = filmRepository.getFilms();
         assertTrue(films.size() >= 2);
+    }
+
+    @Test
+    @Order(10)
+    public void testGetFilmsByDirector() {
+        DirectorDto director = new DirectorDto();
+        director.setName("First Director");
+        DirectorDto savedDirector = directorRepository.save(director);
+        Long filmId = filmRepository.save(film).getId();
+        directorRepository.saveDirectorForFilm(filmId, 1L);
+        Collection<Film> filmsDirectorSortYear = filmRepository.getFilmsByDirector(1L, "year");
+        assertEquals(1, filmsDirectorSortYear.size());
+        Collection<Film> filmsDirectorSortLikes = filmRepository.getFilmsByDirector(1L, "likes");
+        assertEquals(1, filmsDirectorSortLikes.size());
+    }
+
+    @Test
+    @Order(11)
+    public void testDeleteFilm() {
+        film.setName(getNewName());
+        Film savedFilm = filmRepository.save(film);
+        Long filmId = savedFilm.getId();
+
+        Film foundFilm = filmRepository.getFilm(filmId);
+        assertNotNull(foundFilm);
+
+        boolean deleted = filmRepository.deleteFilm(filmId);
+        assertTrue(deleted);
+
+        assertThrows(NotFoundException.class, () -> filmRepository.getFilm(filmId));
+    }
+
+    @Test
+    @Order(12)
+    public void testDeleteFilmWithGenres() {
+        film.setName(getNewName());
+        Film savedFilm = filmRepository.save(film);
+        Long filmId = savedFilm.getId();
+
+        filmRepository.saveGenres(filmId, 1L);
+        filmRepository.saveGenres(filmId, 2L);
+
+        List<GenreDto> genresBefore = genreRepository.getAllGenresByFilmId(filmId);
+        assertEquals(2, genresBefore.size());
+
+        boolean deleted = filmRepository.deleteFilm(filmId);
+        assertTrue(deleted);
+
+        List<GenreDto> genresAfter = genreRepository.getAllGenresByFilmId(filmId);
+        assertEquals(0, genresAfter.size());
+    }
+
+    @Test
+    @Order(13)
+    public void testDeleteFilmWithLikes() {
+        film.setName(getNewName());
+        Film savedFilm = filmRepository.save(film);
+        Long filmId = savedFilm.getId();
+
+        user.setEmail(getNewMail());
+        User savedUser = userRepository.save(user);
+        Long userId = savedUser.getId();
+
+        filmRepository.addLike(filmId, userId);
+
+        boolean deleted = filmRepository.deleteFilm(filmId);
+        assertTrue(deleted);
+
+        assertThrows(NotFoundException.class, () -> filmRepository.getFilm(filmId));
+
+        User existingUser = userRepository.getUser(userId);
+        assertNotNull(existingUser);
+    }
+
+    @Test
+    @Order(14)
+    public void testDeleteFilmWithDirectors() {
+        DirectorDto director = new DirectorDto();
+        director.setName("Test Director");
+        DirectorDto savedDirector = directorRepository.save(director);
+
+        film.setName(getNewName());
+        Film savedFilm = filmRepository.save(film);
+        Long filmId = savedFilm.getId();
+
+        directorRepository.saveDirectorForFilm(filmId, savedDirector.getId());
+
+        List<DirectorDto> directorsBefore = directorRepository.getDirectorsByFilm(filmId);
+        assertEquals(1, directorsBefore.size());
+
+        boolean deleted = filmRepository.deleteFilm(filmId);
+        assertTrue(deleted);
+
+        List<DirectorDto> directorsAfter = directorRepository.getDirectorsByFilm(filmId);
+        assertEquals(0, directorsAfter.size());
+
+        DirectorDto existingDirector = directorRepository.getDirector(savedDirector.getId());
+        assertNotNull(existingDirector);
+    }
+
+    @Test
+    @Order(15)
+    public void testDeleteNonExistentFilm() {
+        boolean deleted = filmRepository.deleteFilm(999L);
+        assertFalse(deleted);
     }
 }

@@ -20,8 +20,13 @@ public class Film {
     private Long ratingId;
     private Set<Long> usersLiked = new HashSet<>();
     private Set<Long> genresIds = new HashSet<>();
+    private Set<Long> directorsIds = new HashSet<>();
 
     public void setGenresIds(Set<Long> collect) {
         this.genresIds = new HashSet<>(collect);
+    }
+
+    public void setDirectorsIds(Set<Long> collect) {
+        this.directorsIds = new HashSet<>(collect);
     }
 }

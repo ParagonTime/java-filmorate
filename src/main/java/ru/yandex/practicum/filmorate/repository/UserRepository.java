@@ -28,6 +28,8 @@ public class UserRepository extends BaseRepository<User> implements UserStorage 
             "JOIN friendship f1 ON u.id = f1.friend_to AND f1.friend_from = ? " +
             "JOIN friendship f2 ON u.id = f2.friend_to AND f2.friend_from = ?";
 
+    private static final String DELETE_USER_QUERY = "DELETE FROM users WHERE id = ?";
+
     public UserRepository(JdbcTemplate jdbc, RowMapper<User> mapper) {
         super(jdbc, mapper);
     }
@@ -110,5 +112,9 @@ public class UserRepository extends BaseRepository<User> implements UserStorage 
     public boolean userExist(Long id) {
         User user = getUser(id);
         return user != null;
+    }
+
+    public boolean deleteUser(Long userId) {
+        return delete(DELETE_USER_QUERY, userId);
     }
 }

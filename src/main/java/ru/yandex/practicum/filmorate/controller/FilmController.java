@@ -64,4 +64,18 @@ public class FilmController {
     public Collection<FilmDto> getPopularFilms(@RequestParam(defaultValue = "10") Long count) {
         return filmService.getPopularFilms(count);
     }
+
+    @GetMapping("/director/{directorId}")
+    public Collection<FilmDto> getFilmsByDirector(
+            @PathVariable("directorId") Long directorId,
+            @RequestParam(required = false, defaultValue = "likes") String sortBy
+    ) {
+        return filmService.getFilmsByDirector(directorId, sortBy);
+    }
+
+    @DeleteMapping("/{filmId}")
+    public void deleteFilm(@PathVariable("filmId") Long filmId) {
+        log.debug("delete film with id {}", filmId);
+        filmService.deleteFilm(filmId);
+    }
 }

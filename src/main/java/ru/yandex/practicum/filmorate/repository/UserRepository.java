@@ -111,4 +111,9 @@ public class UserRepository extends BaseRepository<User> implements UserStorage 
         User user = getUser(id);
         return user != null;
     }
+
+    public boolean deleteUser(Long userId) {
+        String DELETE_USER_QUERY = "DELETE FROM users WHERE id = ?";
+        return delete(DELETE_USER_QUERY, userId);
+    }
 }

@@ -110,5 +110,10 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             return findMany(FIND_DIRECTOR_FILMS_SORT_BY_LIKES, directorId);
         }
     }
+
+    public boolean deleteFilm(Long filmId) {
+        String DELETE_FILM_QUERY = "DELETE FROM films WHERE id = ?";
+        return delete(DELETE_FILM_QUERY, filmId);
+    }
 }
 

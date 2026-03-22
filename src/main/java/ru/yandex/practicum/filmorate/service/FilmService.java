@@ -148,4 +148,19 @@ public class FilmService {
                 .map(this::getFilmDto)
                 .collect(Collectors.toList());
     }
+
+    @Transactional
+    public void deleteFilm(Long filmId) {
+        log.debug("delete film with id {}", filmId);
+
+        filmRepository.deleteGenres(filmId);
+
+        directorRepository.deleteDirectors(filmId);
+
+        boolean deleted = filmRepository.deleteFilm(filmId);
+
+        if (!deleted) {
+            throw new NotFoundException("Не удалось удалить фильм с id " + filmId);
+        }
+    }
 }

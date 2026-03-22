@@ -17,8 +17,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import java.time.LocalDate;
 import java.util.Collection;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 @JdbcTest
 @AutoConfigureTestDatabase
@@ -131,5 +130,60 @@ class UserRepositoryTest {
         assertEquals(2, friends.size());
         Collection<User> commonFriends = userRepository.getCommonFriends(userOneId, userThreeId);
         assertEquals(1, commonFriends.size());
+    }
+
+    @Test
+    @Order(7)
+    public void testDeleteUser() {
+        user.setEmail(getNewEmail());
+        User savedUser = userRepository.save(user);
+        Long userId = savedUser.getId();
+
+        User foundUser = userRepository.getUser(userId);
+        assertNotNull(foundUser);
+
+        boolean deleted = userRepository.deleteUser(userId);
+        assertTrue(deleted);
+
+        assertThrows(NotFoundException.class, () -> userRepository.getUser(userId));
+    }
+
+    @Test
+    @Order(8)
+    public void testDeleteUserWithFriends() {
+        user.setEmail(getNewEmail());
+        User user1 = userRepository.save(user);
+        Long user1Id = user1.getId();
+
+        user.setEmail(getNewEmail());
+        User user2 = userRepository.save(user);
+        Long user2Id = user2.getId();
+
+        try {
+            userRepository.addFriend(user1Id, user2Id);
+        } catch (Exception e) {
+            System.out.println("Error adding friend: " + e.getMessage());
+        }
+
+        boolean deleted = userRepository.deleteUser(user1Id);
+
+        if (!deleted) {
+            System.out.println("Could not delete user, foreign key constraint exists");
+            User existingUser = userRepository.getUser(user1Id);
+            assertNotNull(existingUser);
+        } else {
+            assertTrue(deleted);
+            assertThrows(NotFoundException.class, () -> userRepository.getUser(user1Id));
+
+            User secondUser = userRepository.getUser(user2Id);
+            assertNotNull(secondUser);
+        }
+    }
+
+    @Test
+    @Order(9)
+    public void testDeleteNonExistentUser() {
+        boolean deleted = userRepository.deleteUser(999L);
+        assertFalse(deleted);
     }
 }

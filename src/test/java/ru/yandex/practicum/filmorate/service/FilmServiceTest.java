@@ -356,4 +356,110 @@ class FilmServiceTest {
         assertEquals(2, filmDirectorSortLikes.size());
     }
 
+    @Test
+    @Order(15)
+    public void testDeleteFilm() {
+        FilmDto createdFilm = filmService.postFilm(newFilm);
+        Long filmId = createdFilm.getId();
+
+        FilmDto foundFilm = filmService.getFilm(filmId);
+        assertNotNull(foundFilm);
+
+        filmService.deleteFilm(filmId);
+
+        assertThrows(NotFoundException.class, () -> filmService.getFilm(filmId));
+    }
+
+    @Test
+    @Order(16)
+    public void testDeleteFilmWithLikes() {
+        FilmDto createdFilm = filmService.postFilm(newFilm);
+        Long filmId = createdFilm.getId();
+
+        user.setEmail(getNewEmail());
+        UserDto createdUser = userService.postUser(user);
+
+        filmService.addLike(filmId, createdUser.getId());
+
+        Collection<FilmDto> popularFilms = filmService.getPopularFilms(10L);
+        boolean hasLike = popularFilms.stream().anyMatch(f -> f.getId().equals(filmId));
+        assertTrue(hasLike);
+
+        filmService.deleteFilm(filmId);
+
+        assertThrows(NotFoundException.class, () -> filmService.getFilm(filmId));
+
+        UserDto existingUser = userService.getUser(createdUser.getId());
+        assertNotNull(existingUser);
+    }
+
+    @Test
+    @Order(17)
+    public void testDeleteFilmWithGenres() {
+        FilmDto createdFilm = filmService.postFilm(filmWithAllFields);
+        Long filmId = createdFilm.getId();
+
+        assertTrue(createdFilm.getGenres().size() > 0);
+
+        filmService.deleteFilm(filmId);
+
+        assertThrows(NotFoundException.class, () -> filmService.getFilm(filmId));
+    }
+
+    @Test
+    @Order(18)
+    public void testDeleteFilmWithDirectors() {
+        NewDirectorRequest directorRequest = new NewDirectorRequest();
+        directorRequest.setName("Test Director for Delete");
+        DirectorDto createdDirector = directorService.createDirector(directorRequest);
+
+        NewFilmRequest filmWithDirector = new NewFilmRequest();
+        filmWithDirector.setName(getNewFilmName());
+        filmWithDirector.setDescription("Film with director");
+        filmWithDirector.setReleaseDate(LocalDate.of(2000, 1, 1));
+        filmWithDirector.setDuration(120);
+        MpaDto mpa = new MpaDto();
+        mpa.setId(1L);
+        filmWithDirector.setMpa(mpa);
+
+        DirectorDto directorForFilm = new DirectorDto();
+        directorForFilm.setId(createdDirector.getId());
+        filmWithDirector.setDirectors(List.of(directorForFilm));
+
+        FilmDto createdFilm = filmService.postFilm(filmWithDirector);
+        Long filmId = createdFilm.getId();
+
+        assertEquals(1, createdFilm.getDirectors().size());
+
+        filmService.deleteFilm(filmId);
+
+        assertThrows(NotFoundException.class, () -> filmService.getFilm(filmId));
+
+        DirectorDto existingDirector = directorService.getDirector(createdDirector.getId());
+        assertNotNull(existingDirector);
+    }
+
+    @Test
+    @Order(19)
+    public void testDeleteNonExistentFilm() {
+        assertThrows(NotFoundException.class, () -> filmService.deleteFilm(999L));
+    }
+
+    @Test
+    @Order(20)
+    public void testDeleteFilmAndVerifyCascadeDelete() {
+        FilmDto createdFilm = filmService.postFilm(newFilm);
+        Long filmId = createdFilm.getId();
+
+        user.setEmail(getNewEmail());
+        UserDto createdUser = userService.postUser(user);
+        filmService.addLike(filmId, createdUser.getId());
+
+        filmService.deleteFilm(filmId);
+
+        assertThrows(NotFoundException.class, () -> filmService.getFilm(filmId));
+
+        UserDto existingUser = userService.getUser(createdUser.getId());
+        assertNotNull(existingUser);
+    }
 }

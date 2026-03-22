@@ -37,6 +37,8 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                     "WHERE fd.director_id = ? " +
                     "ORDER BY f.release_date ASC";
 
+    private static final String DELETE_FILM_QUERY = "DELETE FROM films WHERE id = ?";
+
     public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper);
     }
@@ -109,6 +111,10 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
         } else {
             return findMany(FIND_DIRECTOR_FILMS_SORT_BY_LIKES, directorId);
         }
+    }
+
+    public boolean deleteFilm(Long filmId) {
+        return delete(DELETE_FILM_QUERY, filmId);
     }
 }
 

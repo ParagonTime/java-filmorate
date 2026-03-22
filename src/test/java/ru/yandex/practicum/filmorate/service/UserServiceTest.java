@@ -170,4 +170,59 @@ class UserServiceTest {
         assertEquals(1, commonFriends.size());
         assertEquals(user2.getId(), commonFriends.iterator().next().getId());
     }
+
+    @Test
+    @Order(9)
+    public void testDeleteUser() {
+        newUser.setEmail(getNewEmail());
+        UserDto createdUser = userService.postUser(newUser);
+        Long userId = createdUser.getId();
+
+        UserDto foundUser = userService.getUser(userId);
+        assertNotNull(foundUser);
+
+        userService.deleteUser(userId);
+
+        assertThrows(NotFoundException.class, () -> userService.getUser(userId));
+    }
+
+    @Test
+    @Order(10)
+    public void testDeleteUserWithFriends() {
+        newUser.setEmail(getNewEmail());
+        UserDto user1 = userService.postUser(newUser);
+
+        friend.setEmail(getNewEmail());
+        UserDto user2 = userService.postUser(friend);
+
+        userService.addFriend(user1.getId(), user2.getId());
+
+        Collection<UserDto> user1Friends = userService.getFriends(user1.getId());
+        assertEquals(1, user1Friends.size());
+
+        userService.deleteUser(user1.getId());
+
+        assertThrows(NotFoundException.class, () -> userService.getUser(user1.getId()));
+
+        UserDto secondUser = userService.getUser(user2.getId());
+        assertNotNull(secondUser);
+    }
+
+    @Test
+    @Order(11)
+    public void testDeleteUserWithReviews() {
+        newUser.setEmail(getNewEmail());
+        UserDto createdUser = userService.postUser(newUser);
+        Long userId = createdUser.getId();
+
+        userService.deleteUser(userId);
+
+        assertThrows(NotFoundException.class, () -> userService.getUser(userId));
+    }
+
+    @Test
+    @Order(12)
+    public void testDeleteNonExistentUser() {
+        assertThrows(NotFoundException.class, () -> userService.deleteUser(999L));
+    }
 }

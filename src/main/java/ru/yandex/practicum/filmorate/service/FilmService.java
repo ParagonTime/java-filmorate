@@ -14,10 +14,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.repository.DirectorRepository;
-import ru.yandex.practicum.filmorate.repository.FilmRepository;
-import ru.yandex.practicum.filmorate.repository.GenreRepository;
-import ru.yandex.practicum.filmorate.repository.MpaRepository;
+import ru.yandex.practicum.filmorate.repository.*;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -34,6 +31,7 @@ public class FilmService {
     private final GenreRepository genreRepository;
     private final DirectorRepository directorRepository;
     private final FilmMapper filmMapper;
+    private final UserRepository userRepository;
 
     @Transactional
     public FilmDto postFilm(NewFilmRequest request) {
@@ -145,6 +143,17 @@ public class FilmService {
             throw new ValidationException("Неизвестный аргумент sortBy: " + sortBy);
         }
         return filmRepository.getFilmsByDirector(directorId, sortBy).stream()
+                .map(this::getFilmDto)
+                .collect(Collectors.toList());
+    }
+
+    public Collection<FilmDto> getCommonFilms(Long userId, Long friendId) {
+        log.debug("get common films for users {} and {}", userId, friendId);
+
+        userRepository.getUser(userId);
+        userRepository.getUser(friendId);
+
+        return filmRepository.getCommonFilms(userId, friendId).stream()
                 .map(this::getFilmDto)
                 .collect(Collectors.toList());
     }

@@ -43,10 +43,14 @@ public class UpdateFilmRequest {
     }
 
     public boolean hasGenres() {
+<<<<<<< HEAD
         return genres != null;
+=======
+        return !(genres == null);
+>>>>>>> 05a27253ac6368f20e84bbe8c15b2d544e7f9583
     }
 
     public boolean hasDirector() {
-        return !(directors == null || directors.isEmpty());
+        return !(directors == null);
     }
 }

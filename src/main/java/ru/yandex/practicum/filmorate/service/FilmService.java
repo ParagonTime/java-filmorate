@@ -13,6 +13,8 @@ import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
+import ru.yandex.practicum.filmorate.model.FeedEventType;
+import ru.yandex.practicum.filmorate.model.FeedOperationType;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.repository.*;
 
@@ -32,6 +34,7 @@ public class FilmService {
     private final GenreRepository genreRepository;
     private final DirectorRepository directorRepository;
     private final FilmMapper filmMapper;
+    private final FeedRepository feedRepository;
     private final UserRepository userRepository;
 
     private static final String NO_NEGATIVE_PARAMETER_MESSAGE = "Парамерты не могут быть меньше 0";
@@ -118,12 +121,14 @@ public class FilmService {
     @Transactional
     public Boolean addLike(Long filmId, Long userId) {
         log.debug("add like film {} by user {}", filmId, userId);
+        feedRepository.addEventByParams(userId, System.currentTimeMillis(), FeedEventType.LIKE, FeedOperationType.ADD, filmId);
         return filmRepository.addLike(filmId, userId);
     }
 
     @Transactional
     public Boolean deleteLike(Long filmId, Long userId) {
         log.debug("delete like film {} by user {}", filmId, userId);
+        feedRepository.addEventByParams(userId, System.currentTimeMillis(), FeedEventType.LIKE, FeedOperationType.REMOVE, filmId);
         return filmRepository.deleteLike(filmId, userId);
     }
 

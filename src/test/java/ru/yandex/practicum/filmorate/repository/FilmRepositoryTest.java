@@ -70,6 +70,7 @@ class FilmRepositoryTest {
         film.setDuration(120);
         film.setRatingId(1L);
         film.setGenresIds(new HashSet<>());
+        film.setDirectorsIds(new HashSet<>(List.of(1L, 2L)));
 
         user = new User();
         user.setName("User");
@@ -241,7 +242,7 @@ class FilmRepositoryTest {
     }
 
     @Test
-    @Order(10)
+    @Order(11)
     public void testGetFilmsLikedByUser() {
         User testUser = new User();
         testUser.setName("Test User");
@@ -289,7 +290,7 @@ class FilmRepositoryTest {
     }
 
     @Test
-    @Order(11)
+    @Order(12)
     public void testDeleteFilm() {
         film.setName(getNewName());
         Film savedFilm = filmRepository.save(film);
@@ -305,7 +306,7 @@ class FilmRepositoryTest {
     }
 
     @Test
-    @Order(12)
+    @Order(13)
     public void testDeleteFilmWithGenres() {
         film.setName(getNewName());
         Film savedFilm = filmRepository.save(film);
@@ -325,7 +326,7 @@ class FilmRepositoryTest {
     }
 
     @Test
-    @Order(13)
+    @Order(14)
     public void testDeleteFilmWithLikes() {
         film.setName(getNewName());
         Film savedFilm = filmRepository.save(film);
@@ -347,7 +348,7 @@ class FilmRepositoryTest {
     }
 
     @Test
-    @Order(14)
+    @Order(15)
     public void testDeleteFilmWithDirectors() {
         DirectorDto director = new DirectorDto();
         director.setName("Test Director");
@@ -373,14 +374,14 @@ class FilmRepositoryTest {
     }
 
     @Test
-    @Order(15)
+    @Order(16)
     public void testDeleteNonExistentFilm() {
         boolean deleted = filmRepository.deleteFilm(999L);
         assertFalse(deleted);
     }
 
     @Test
-    @Order(16)
+    @Order(10)
     public void testGetFilmsByDirector() {
         DirectorDto director = new DirectorDto();
         director.setName("First Director");

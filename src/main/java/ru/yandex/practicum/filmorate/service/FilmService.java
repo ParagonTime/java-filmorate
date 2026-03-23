@@ -121,6 +121,7 @@ public class FilmService {
     @Transactional
     public Boolean addLike(Long filmId, Long userId) {
         log.debug("add like film {} by user {}", filmId, userId);
+        userRepository.getUser(userId);
         feedRepository.addEventByParams(userId, System.currentTimeMillis(), FeedEventType.LIKE, FeedOperationType.ADD, filmId);
         return filmRepository.addLike(filmId, userId);
     }

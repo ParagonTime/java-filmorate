@@ -14,10 +14,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.repository.DirectorRepository;
-import ru.yandex.practicum.filmorate.repository.FilmRepository;
-import ru.yandex.practicum.filmorate.repository.GenreRepository;
-import ru.yandex.practicum.filmorate.repository.MpaRepository;
+import ru.yandex.practicum.filmorate.repository.*;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -35,6 +32,9 @@ public class FilmService {
     private final GenreRepository genreRepository;
     private final DirectorRepository directorRepository;
     private final FilmMapper filmMapper;
+    private final UserRepository userRepository;
+
+    private static final String NO_NEGATIVE_PARAMETER_MESSAGE = "Парамерты не могут быть меньше 0";
 
     @Transactional
     public FilmDto postFilm(NewFilmRequest request) {
@@ -128,7 +128,7 @@ public class FilmService {
     }
 
     public Collection<FilmDto> getPopularFilms(Long count) {
-        log.debug("get popular films: {}", count);
+
         return filmRepository.getPopularFilms(count).stream()
                 .map(this::getFilmDto)
                 .collect(Collectors.toList());
@@ -146,6 +146,24 @@ public class FilmService {
             throw new ValidationException("Неизвестный аргумент sortBy: " + sortBy);
         }
         return filmRepository.getFilmsByDirector(directorId, sortBy).stream()
+                .map(this::getFilmDto)
+                .collect(Collectors.toList());
+    }
+
+    public Collection<FilmDto> getPopularWithGenreByYear(Integer limit, Long genreId, Integer year) {
+        log.debug("get popular films: genre={} year={} count={}", genreId, year, limit);
+        return filmRepository.getFilmsWithGenreByYear(limit, genreId, year).stream()
+                .map(this::getFilmDto)
+                .toList();
+    }
+
+    public Collection<FilmDto> getCommonFilms(Long userId, Long friendId) {
+        log.debug("get common films for users {} and {}", userId, friendId);
+
+        userRepository.getUser(userId);
+        userRepository.getUser(friendId);
+
+        return filmRepository.getCommonFilms(userId, friendId).stream()
                 .map(this::getFilmDto)
                 .collect(Collectors.toList());
     }

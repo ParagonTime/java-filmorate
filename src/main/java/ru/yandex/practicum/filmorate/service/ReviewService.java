@@ -47,9 +47,10 @@ public class ReviewService {
     @Transactional
     public ReviewDto putReview(UpdateReviewRequest request) {
         log.debug("update review {}", request);
-        validateUserAndFilm(request.getUserId(), request.getFilmId());
 
         Review review = reviewRepository.getReview(request.getReviewId());
+        validateUserAndFilm(review.getUserId(), review.getFilmId());
+
         Review updatedReview = reviewMapper.updateReviewFields(review, request);
         updatedReview = reviewRepository.update(updatedReview);
 

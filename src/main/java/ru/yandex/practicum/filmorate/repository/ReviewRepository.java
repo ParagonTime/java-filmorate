@@ -18,7 +18,7 @@ public class ReviewRepository extends BaseRepository<Review> {
 
     private static final String UPDATE_QUERY = """
             UPDATE reviews
-            SET content = ?, is_positive = ?, user_id = ?, film_id = ?
+            SET content = ?, is_positive = ?
             WHERE review_id = ?
             """;
 
@@ -91,8 +91,6 @@ public class ReviewRepository extends BaseRepository<Review> {
                 UPDATE_QUERY,
                 review.getContent(),
                 review.getIsPositive(),
-                review.getUserId(),
-                review.getFilmId(),
                 review.getReviewId()
         );
         return review;

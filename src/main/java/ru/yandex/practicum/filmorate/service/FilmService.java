@@ -78,7 +78,7 @@ public class FilmService {
             throw new ValidationException("Дата релиза — не раньше 28 декабря 1895");
         }
         int genreCount = genreRepository.getAllGenres().size();
-        if (request.hasGenres() && request.getGenres().stream().anyMatch(genre -> genre.getId() > genreCount)) {
+        if (request.getGenres() != null && request.getGenres().stream().anyMatch(genre -> genre.getId() > genreCount)) {
             throw new NotFoundException("Выбран несуществующий жанр");
         }
         int mpaCount = mpaRepository.getAllMpa().size();
@@ -88,20 +88,24 @@ public class FilmService {
         Film film = filmRepository.getFilm(request.getId());
         Film updatedFilm = filmMapper.updateFilmFields(film, request);
         Film savedFilm = filmRepository.update(updatedFilm);
-        filmRepository.deleteGenres(savedFilm.getId());
-        if (request.hasGenres()) {
+
+        if (request.getGenres() != null) {
+            filmRepository.deleteGenres(savedFilm.getId());
             request.getGenres().stream()
                     .map(GenreDto::getId)
                     .distinct()
                     .forEach(genreId -> filmRepository.saveGenres(savedFilm.getId(), genreId));
         }
+
         directorRepository.deleteDirectors(savedFilm.getId());
-        if (request.hasDirector()) {
+
+        if (request.getDirectors() != null) {
             request.getDirectors().stream()
                     .map(DirectorDto::getId)
                     .distinct()
                     .forEach(directorId -> directorRepository.saveDirectorForFilm(savedFilm.getId(), directorId));
         }
+
         return getFilmDto(savedFilm);
     }
 

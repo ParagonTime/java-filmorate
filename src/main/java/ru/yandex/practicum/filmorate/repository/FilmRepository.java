@@ -18,7 +18,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     private static final String UPDATE_QUERY = "UPDATE films SET name = ?, description = ?, release_date = ?, duration = ?, rating_id = ? WHERE id = ?";
     private static final String FIND_ALL_FILMS = "SELECT * FROM films";
     private static final String FIND_FILM_BY_ID = "SELECT * FROM films WHERE id = ?";
-    private static final String INSERT_LIKE = "INSERT INTO user_like(film_id, user_id) VALUES (?, ?)";
+    private static final String INSERT_LIKE = "MERGE INTO user_like (film_id, user_id) KEY (film_id, user_id) VALUES (?, ?)";
     private static final String DELETE_LIKE = "DELETE FROM user_like WHERE film_id = ? AND user_id = ?";
     private static final String FIND_POPULAR_FILMS =
             "SELECT f.*, COUNT(ul.user_id) as likes_count " +

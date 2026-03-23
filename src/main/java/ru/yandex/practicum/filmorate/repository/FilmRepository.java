@@ -45,7 +45,6 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                     "JOIN film_director fd ON f.id = fd.film_id " +
                     "WHERE fd.director_id = ? " +
                     "ORDER BY f.release_date ASC";
-<<<<<<< add-search
     private static final String SEARCH_FILMS_QUERY = """
             SELECT f.*, d.name as director_name, count(ul.USER_ID) AS likes_count
             FROM films f
@@ -57,9 +56,6 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
             GROUP BY f.id, fd.DIRECTOR_ID
             ORDER BY likes_count DESC, f.name, director_name
             """;
-
-
-=======
     private static final String LIMIT_ARG = " LIMIT ?";
     private static final String FIND_FILMS_LIKED_BY_USER =
             "SELECT f.* FROM films f JOIN user_like ul ON f.id = ul.film_id WHERE ul.user_id = ?";
@@ -72,7 +68,6 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                     "WHERE ul1.user_id = ? AND ul2.user_id = ? " +
                     "GROUP BY f.id " +
                     "ORDER BY likes_count DESC";
->>>>>>> develop
     private static final String DELETE_FILM_QUERY = "DELETE FROM films WHERE id = ?";
 
     public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> mapper) {

@@ -42,6 +42,7 @@ class FilmRepositoryTest {
     private final FilmRepository filmRepository;
     private final GenreRepository genreRepository;
     private final UserRepository userRepository;
+    private final DirectorRepository directorRepository;
     private static Film film;
     private static User user;
     private static int nameCount;

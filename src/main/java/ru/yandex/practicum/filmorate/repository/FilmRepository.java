@@ -126,7 +126,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
         return findMany(FIND_COMMON_FILMS, userId, friendId);
     }
     
-      public boolean deleteFilm(Long filmId) {
+    public boolean deleteFilm(Long filmId) {
         return delete(DELETE_FILM_QUERY, filmId);
     }
 }

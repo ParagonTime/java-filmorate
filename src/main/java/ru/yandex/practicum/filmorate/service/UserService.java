@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.dto.NewUserRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.UserDto;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.repository.UserRepository;
@@ -79,5 +80,16 @@ public class UserService {
         return userRepository.getCommonFriends(id, otherId).stream()
                 .map(userMapper::mapToUserDto)
                 .toList();
+    }
+
+    @Transactional
+    public void deleteUser(Long userId) {
+        log.debug("delete user with id {}", userId);
+
+        boolean deleted = userRepository.deleteUser(userId);
+
+        if (!deleted) {
+            throw new NotFoundException("Не удалось удалить пользователя с id " + userId);
+        }
     }
 }

@@ -46,6 +46,8 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                     "GROUP BY f.id " +
                     "ORDER BY likes_count DESC";
 
+    private static final String DELETE_FILM_QUERY = "DELETE FROM films WHERE id = ?";
+
     public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper);
     }
@@ -122,6 +124,10 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
 
     public Collection<Film> getCommonFilms(Long userId, Long friendId) {
         return findMany(FIND_COMMON_FILMS, userId, friendId);
+    }
+    
+      public boolean deleteFilm(Long filmId) {
+        return delete(DELETE_FILM_QUERY, filmId);
     }
 }
 

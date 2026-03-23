@@ -157,7 +157,7 @@ public class FilmService {
                 .map(this::getFilmDto)
                 .collect(Collectors.toList());
     }
-  
+
     @Transactional
     public void deleteFilm(Long filmId) {
         log.debug("delete film with id {}", filmId);

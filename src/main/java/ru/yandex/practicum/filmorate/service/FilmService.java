@@ -114,6 +114,9 @@ public class FilmService {
 
     public FilmDto getFilm(Long id) {
         log.debug("get film by id: {}", id);
+        if (id < 0) {
+            throw new ValidationException(NO_NEGATIVE_PARAMETER_MESSAGE);
+        }
         Film film = filmRepository.getFilm(id);
         return getFilmDto(film);
     }
@@ -121,19 +124,33 @@ public class FilmService {
     @Transactional
     public Boolean addLike(Long filmId, Long userId) {
         log.debug("add like film {} by user {}", filmId, userId);
+        if (filmId < 0 || userId < 0) {
+            throw new ValidationException(NO_NEGATIVE_PARAMETER_MESSAGE);
+        }
+        filmRepository.getFilm(filmId);
+        userRepository.getUser(userId);
+        Boolean result = filmRepository.addLike(filmId, userId);
         feedRepository.addEventByParams(userId, System.currentTimeMillis(), FeedEventType.LIKE, FeedOperationType.ADD, filmId);
-        return filmRepository.addLike(filmId, userId);
+        return result;
     }
 
     @Transactional
     public Boolean deleteLike(Long filmId, Long userId) {
         log.debug("delete like film {} by user {}", filmId, userId);
+        if (filmId < 0 || userId < 0) {
+            throw new ValidationException(NO_NEGATIVE_PARAMETER_MESSAGE);
+        }
+        filmRepository.getFilm(filmId);
+        userRepository.getUser(userId);
+        Boolean result = filmRepository.deleteLike(filmId, userId);
         feedRepository.addEventByParams(userId, System.currentTimeMillis(), FeedEventType.LIKE, FeedOperationType.REMOVE, filmId);
-        return filmRepository.deleteLike(filmId, userId);
+        return result;
     }
 
     public Collection<FilmDto> getPopularFilms(Long count) {
-
+        if (count < 0) {
+            throw new ValidationException(NO_NEGATIVE_PARAMETER_MESSAGE);
+        }
         return filmRepository.getPopularFilms(count).stream()
                 .map(this::getFilmDto)
                 .collect(Collectors.toList());
@@ -147,9 +164,13 @@ public class FilmService {
     }
 
     public Collection<FilmDto> getFilmsByDirector(Long directorId, String sortBy) {
+        if (directorId < 0) {
+            throw new ValidationException(NO_NEGATIVE_PARAMETER_MESSAGE);
+        }
         if (!List.of("year", "likes").contains(sortBy)) {
             throw new ValidationException("Неизвестный аргумент sortBy: " + sortBy);
         }
+        directorRepository.getDirector(directorId);
         return filmRepository.getFilmsByDirector(directorId, sortBy).stream()
                 .map(this::getFilmDto)
                 .collect(Collectors.toList());
@@ -164,6 +185,9 @@ public class FilmService {
 
     public Collection<FilmDto> getCommonFilms(Long userId, Long friendId) {
         log.debug("get common films for users {} and {}", userId, friendId);
+        if (userId < 0 || friendId < 0) {
+            throw new ValidationException(NO_NEGATIVE_PARAMETER_MESSAGE);
+        }
 
         userRepository.getUser(userId);
         userRepository.getUser(friendId);
@@ -215,5 +239,4 @@ public class FilmService {
                 .map(this::getFilmDto)
                 .collect(Collectors.toList());
     }
-
 }

@@ -330,6 +330,35 @@ class FilmServiceTest {
 
     @Test
     @Order(14)
+    public void testGetFilmsWithGenreByYear() {
+        GenreDto genre = new GenreDto();
+        genre.setId(4L);
+        newFilm.setGenres(List.of(genre));
+        newFilm.setReleaseDate(LocalDate.of(2000, 1, 1));
+        filmWithAllFields.setGenres(List.of(genre));
+        filmWithAllFields.setReleaseDate(LocalDate.of(2000, 1, 1));
+
+        FilmDto filmDto1 = filmService.postFilm(newFilm);
+        FilmDto filmDto2 = filmService.postFilm(filmWithAllFields);
+
+        user.setEmail(getNewEmail());
+        userTwo.setEmail(getNewEmail());
+
+        UserDto userDto1 = userService.postUser(user);
+        UserDto userDto2 = userService.postUser(userTwo);
+
+        filmService.addLike(filmDto1.getId(), userDto1.getId());
+        filmService.addLike(filmDto1.getId(), userDto2.getId());
+        filmService.addLike(filmDto2.getId(), userDto1.getId());
+
+        Collection<FilmDto> films = filmService.getPopularWithGenreByYear(10, 4L, 2000);
+
+        assertEquals(2, films.size());
+        assertEquals(filmDto1.getId(), films.stream().toList().getFirst().getId());
+    }
+
+    @Test
+    @Order(16)
     public void testGetFilmsByDirector() {
         NewDirectorRequest directorRequest = new NewDirectorRequest();
         directorRequest.setName("Director 1");

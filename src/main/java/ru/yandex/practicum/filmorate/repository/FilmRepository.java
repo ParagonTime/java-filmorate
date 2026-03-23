@@ -7,7 +7,9 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @Repository
 public class FilmRepository extends BaseRepository<Film> implements FilmStorage {
@@ -24,6 +26,13 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                     "GROUP BY f.id ORDER BY likes_count DESC LIMIT ?";
     private static final String INSERT_FILM_GENRE = "INSERT INTO film_genre(film_id, genre_id) VALUES (?, ?)";
     private static final String DELETE_FILM_GENRES = "DELETE FROM film_genre WHERE film_id = ?";
+    private static final String FIND_FILM_GENRE_YEAR =
+            "SELECT f.*, COUNT(ul.user_id) as likes_count " +
+                    "FROM films f " +
+                    "JOIN film_genre fg ON f.id = fg.film_id " +
+                    "LEFT JOIN user_like ul ON f.id = ul.film_id " +
+                    "WHERE fg.genre_id = ? AND EXTRACT(YEAR FROM f.release_date) = ? " +
+                    "GROUP BY f.id ORDER BY likes_count DESC";
     private static final String FIND_DIRECTOR_FILMS_SORT_BY_LIKES =
             "SELECT f.*, COUNT(ul.user_id) as likes_count FROM films f " +
                     "LEFT JOIN user_like ul ON f.id = ul.film_id " +
@@ -36,6 +45,7 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                     "JOIN film_director fd ON f.id = fd.film_id " +
                     "WHERE fd.director_id = ? " +
                     "ORDER BY f.release_date ASC";
+    private static final String LIMIT_ARG = " LIMIT ?";
     private static final String FIND_FILMS_LIKED_BY_USER =
             "SELECT f.* FROM films f JOIN user_like ul ON f.id = ul.film_id WHERE ul.user_id = ?";
     private static final String FIND_COMMON_FILMS =
@@ -47,7 +57,6 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                     "WHERE ul1.user_id = ? AND ul2.user_id = ? " +
                     "GROUP BY f.id " +
                     "ORDER BY likes_count DESC";
-
     private static final String DELETE_FILM_QUERY = "DELETE FROM films WHERE id = ?";
 
     public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> mapper) {
@@ -122,6 +131,43 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
         } else {
             return findMany(FIND_DIRECTOR_FILMS_SORT_BY_LIKES, directorId);
         }
+    }
+
+    public Collection<Film> getFilmsWithGenreByYear(Integer limit, Long genreId, Integer year) {
+        List<Object> params = new ArrayList<>();
+        StringBuilder queryBuilder = new StringBuilder(
+                "SELECT f.*, COUNT(ul.user_id) as likes_count " +
+                        "FROM films f " +
+                        "LEFT JOIN user_like ul ON f.id = ul.film_id "
+        );
+
+        if (genreId != null) {
+            queryBuilder.append("JOIN film_genre fg ON f.id = fg.film_id ");
+        }
+
+        List<String> conditions = new ArrayList<>();
+
+        if (genreId != null) {
+            conditions.add("fg.genre_id = ?");
+            params.add(genreId);
+        }
+
+        if (year != null) {
+            conditions.add("EXTRACT(YEAR FROM f.release_date) = ?");
+            params.add(year);
+        }
+
+        if (!conditions.isEmpty()) {
+            queryBuilder.append("WHERE ").append(String.join(" AND ", conditions));
+        }
+
+        queryBuilder.append(" GROUP BY f.id ORDER BY likes_count DESC ");
+
+        if (limit != null) {
+            queryBuilder.append("LIMIT ?");
+            params.add(limit);
+        }
+        return findMany(queryBuilder.toString(), params.toArray());
     }
 
     public Collection<Film> getFilmsLikedByUser(Long userId) {

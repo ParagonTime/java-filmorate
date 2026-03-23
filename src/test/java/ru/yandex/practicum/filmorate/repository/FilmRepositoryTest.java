@@ -393,4 +393,34 @@ class FilmRepositoryTest {
         Collection<Film> filmsDirectorSortLikes = filmRepository.getFilmsByDirector(1L, "likes");
         assertEquals(1, filmsDirectorSortLikes.size());
     }
+
+    @Test
+    @Order(17)
+    public void testGetFilmsWithGenreByYear() {
+        film.setReleaseDate(LocalDate.of(2000, 1, 1));
+
+        user.setEmail(getNewMail());
+        User user1 = userRepository.save(user);
+        System.out.println(user1);
+
+        Film film1 = filmRepository.save(film);
+        System.out.println(film1);
+        filmRepository.saveGenres(film1.getId(), 4L);
+        filmRepository.addLike(film1.getId(), user1.getId());
+
+        Film film2 = filmRepository.save(film);
+        System.out.println(film2);
+        filmRepository.saveGenres(film2.getId(), 4L);
+
+        filmRepository.addLike(film2.getId(), user1.getId());
+
+        user.setEmail(getNewMail());
+        User user2 = userRepository.save(user);
+        System.out.println(user2);
+        filmRepository.addLike(film1.getId(), user2.getId());
+
+        Collection<Film> films = filmRepository.getFilmsWithGenreByYear(10, 4L, 2000);
+        assertEquals(2, films.size());
+        assertEquals(film1.getId(), films.stream().toList().getFirst().getId());
+    }
 }

@@ -33,6 +33,8 @@ public class FilmService {
     private final FilmMapper filmMapper;
     private final UserRepository userRepository;
 
+    private static final String NO_NEGATIVE_PARAMETER_MESSAGE = "Парамерты не могут быть меньше 0";
+
     @Transactional
     public FilmDto postFilm(NewFilmRequest request) {
         log.debug("create film: {}", request);
@@ -125,7 +127,7 @@ public class FilmService {
     }
 
     public Collection<FilmDto> getPopularFilms(Long count) {
-        log.debug("get popular films: {}", count);
+
         return filmRepository.getPopularFilms(count).stream()
                 .map(this::getFilmDto)
                 .collect(Collectors.toList());
@@ -145,6 +147,13 @@ public class FilmService {
         return filmRepository.getFilmsByDirector(directorId, sortBy).stream()
                 .map(this::getFilmDto)
                 .collect(Collectors.toList());
+    }
+
+    public Collection<FilmDto> getPopularWithGenreByYear(Integer limit, Long genreId, Integer year) {
+        log.debug("get popular films: genre={} year={} count={}", genreId, year, limit);
+        return filmRepository.getFilmsWithGenreByYear(limit, genreId, year).stream()
+                .map(this::getFilmDto)
+                .toList();
     }
 
     public Collection<FilmDto> getCommonFilms(Long userId, Long friendId) {

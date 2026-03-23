@@ -88,15 +88,15 @@ public class FilmService {
         Film film = filmRepository.getFilm(request.getId());
         Film updatedFilm = filmMapper.updateFilmFields(film, request);
         Film savedFilm = filmRepository.update(updatedFilm);
+        filmRepository.deleteGenres(savedFilm.getId());
         if (request.hasGenres()) {
-            filmRepository.deleteGenres(savedFilm.getId());
             request.getGenres().stream()
                     .map(GenreDto::getId)
                     .distinct()
                     .forEach(genreId -> filmRepository.saveGenres(savedFilm.getId(), genreId));
         }
+        directorRepository.deleteDirectors(savedFilm.getId());
         if (request.hasDirector()) {
-            directorRepository.deleteDirectors(savedFilm.getId());
             request.getDirectors().stream()
                     .map(DirectorDto::getId)
                     .distinct()

@@ -27,9 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @JdbcTest
 @AutoConfigureTestDatabase
@@ -244,6 +242,145 @@ class FilmRepositoryTest {
     }
 
     @Test
+    @Order(11)
+    public void testGetFilmsLikedByUser() {
+        User testUser = new User();
+        testUser.setName("Test User");
+        testUser.setLogin("testLogin" + System.currentTimeMillis());
+        testUser.setEmail("test" + System.currentTimeMillis() + "@test.com");
+        testUser.setBirthday(LocalDate.of(1990, 1, 1));
+        User savedUser = userRepository.save(testUser);
+
+        Film testFilm1 = new Film();
+        testFilm1.setName("Test Film 1 " + System.currentTimeMillis());
+        testFilm1.setDescription("Description 1");
+        testFilm1.setReleaseDate(LocalDate.of(2000, 1, 1));
+        testFilm1.setDuration(120);
+        testFilm1.setRatingId(1L);
+        Film film1 = filmRepository.save(testFilm1);
+
+        Film testFilm2 = new Film();
+        testFilm2.setName("Test Film 2 " + System.currentTimeMillis());
+        testFilm2.setDescription("Description 2");
+        testFilm2.setReleaseDate(LocalDate.of(2001, 1, 1));
+        testFilm2.setDuration(130);
+        testFilm2.setRatingId(1L);
+        Film film2 = filmRepository.save(testFilm2);
+
+        Film testFilm3 = new Film();
+        testFilm3.setName("Test Film 3 " + System.currentTimeMillis());
+        testFilm3.setDescription("Description 3");
+        testFilm3.setReleaseDate(LocalDate.of(2002, 1, 1));
+        testFilm3.setDuration(140);
+        testFilm3.setRatingId(2L);
+        Film film3 = filmRepository.save(testFilm3);
+
+        Boolean like1 = filmRepository.addLike(film1.getId(), savedUser.getId());
+        Boolean like2 = filmRepository.addLike(film2.getId(), savedUser.getId());
+
+        assertTrue(like1);
+        assertTrue(like2);
+
+        Collection<Film> likedFilms = filmRepository.getFilmsLikedByUser(savedUser.getId());
+
+        assertEquals(2, likedFilms.size());
+        assertTrue(likedFilms.stream().anyMatch(f -> f.getId().equals(film1.getId())));
+        assertTrue(likedFilms.stream().anyMatch(f -> f.getId().equals(film2.getId())));
+        assertTrue(likedFilms.stream().noneMatch(f -> f.getId().equals(film3.getId())));
+    }
+
+    @Test
+    @Order(12)
+    public void testDeleteFilm() {
+        film.setName(getNewName());
+        Film savedFilm = filmRepository.save(film);
+        Long filmId = savedFilm.getId();
+
+        Film foundFilm = filmRepository.getFilm(filmId);
+        assertNotNull(foundFilm);
+
+        boolean deleted = filmRepository.deleteFilm(filmId);
+        assertTrue(deleted);
+
+        assertThrows(NotFoundException.class, () -> filmRepository.getFilm(filmId));
+    }
+
+    @Test
+    @Order(13)
+    public void testDeleteFilmWithGenres() {
+        film.setName(getNewName());
+        Film savedFilm = filmRepository.save(film);
+        Long filmId = savedFilm.getId();
+
+        filmRepository.saveGenres(filmId, 1L);
+        filmRepository.saveGenres(filmId, 2L);
+
+        List<GenreDto> genresBefore = genreRepository.getAllGenresByFilmId(filmId);
+        assertEquals(2, genresBefore.size());
+
+        boolean deleted = filmRepository.deleteFilm(filmId);
+        assertTrue(deleted);
+
+        List<GenreDto> genresAfter = genreRepository.getAllGenresByFilmId(filmId);
+        assertEquals(0, genresAfter.size());
+    }
+
+    @Test
+    @Order(14)
+    public void testDeleteFilmWithLikes() {
+        film.setName(getNewName());
+        Film savedFilm = filmRepository.save(film);
+        Long filmId = savedFilm.getId();
+
+        user.setEmail(getNewMail());
+        User savedUser = userRepository.save(user);
+        Long userId = savedUser.getId();
+
+        filmRepository.addLike(filmId, userId);
+
+        boolean deleted = filmRepository.deleteFilm(filmId);
+        assertTrue(deleted);
+
+        assertThrows(NotFoundException.class, () -> filmRepository.getFilm(filmId));
+
+        User existingUser = userRepository.getUser(userId);
+        assertNotNull(existingUser);
+    }
+
+    @Test
+    @Order(15)
+    public void testDeleteFilmWithDirectors() {
+        DirectorDto director = new DirectorDto();
+        director.setName("Test Director");
+        DirectorDto savedDirector = directorRepository.save(director);
+
+        film.setName(getNewName());
+        Film savedFilm = filmRepository.save(film);
+        Long filmId = savedFilm.getId();
+
+        directorRepository.saveDirectorForFilm(filmId, savedDirector.getId());
+
+        List<DirectorDto> directorsBefore = directorRepository.getDirectorsByFilm(filmId);
+        assertEquals(1, directorsBefore.size());
+
+        boolean deleted = filmRepository.deleteFilm(filmId);
+        assertTrue(deleted);
+
+        List<DirectorDto> directorsAfter = directorRepository.getDirectorsByFilm(filmId);
+        assertEquals(0, directorsAfter.size());
+
+        DirectorDto existingDirector = directorRepository.getDirector(savedDirector.getId());
+        assertNotNull(existingDirector);
+    }
+
+    @Test
+    @Order(16)
+    public void testDeleteNonExistentFilm() {
+        boolean deleted = filmRepository.deleteFilm(999L);
+        assertFalse(deleted);
+    }
+
+    @Test
     @Order(10)
     public void testGetFilmsByDirector() {
         DirectorDto director = new DirectorDto();
@@ -258,7 +395,7 @@ class FilmRepositoryTest {
     }
 
     @Test
-    @Order(11)
+    @Order(17)
     public void testGetFilmsWithGenreByYear() {
         film.setReleaseDate(LocalDate.of(2000, 1, 1));
 

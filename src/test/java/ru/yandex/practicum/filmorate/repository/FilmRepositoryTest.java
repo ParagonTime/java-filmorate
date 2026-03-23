@@ -450,6 +450,4 @@ class FilmRepositoryTest {
     public void testSearchFilmsByTitleDirector() {
         Collection<Film> filmsSearchedByTitleDirector = filmRepository.getSearchFilms("DummyString", true, true);
     }
-       
-  
 }

@@ -42,7 +42,9 @@ public class UpdateFilmRequest {
         return !(mpa == null);
     }
 
-    public boolean hasGenres() { return genres != null; }
+    public boolean hasGenres() {
+        return genres != null;
+    }
 
     public boolean hasDirector() {
         return !(directors == null || directors.isEmpty());

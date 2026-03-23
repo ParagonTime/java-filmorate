@@ -38,6 +38,17 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                     "ORDER BY f.release_date ASC";
     private static final String FIND_FILMS_LIKED_BY_USER =
             "SELECT f.* FROM films f JOIN user_like ul ON f.id = ul.film_id WHERE ul.user_id = ?";
+    private static final String FIND_COMMON_FILMS =
+            "SELECT f.*, COUNT(ul_all.user_id) as likes_count " +
+                    "FROM films f " +
+                    "JOIN user_like ul1 ON f.id = ul1.film_id " +
+                    "JOIN user_like ul2 ON f.id = ul2.film_id " +
+                    "LEFT JOIN user_like ul_all ON f.id = ul_all.film_id " +
+                    "WHERE ul1.user_id = ? AND ul2.user_id = ? " +
+                    "GROUP BY f.id " +
+                    "ORDER BY likes_count DESC";
+
+    private static final String DELETE_FILM_QUERY = "DELETE FROM films WHERE id = ?";
 
     public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> mapper) {
         super(jdbc, mapper);
@@ -120,5 +131,12 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     public JdbcTemplate getJdbc() {
         return jdbc;
     }
-}
 
+    public Collection<Film> getCommonFilms(Long userId, Long friendId) {
+        return findMany(FIND_COMMON_FILMS, userId, friendId);
+    }
+
+    public boolean deleteFilm(Long filmId) {
+        return delete(DELETE_FILM_QUERY, filmId);
+    }
+}

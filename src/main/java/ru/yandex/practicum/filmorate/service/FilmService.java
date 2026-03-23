@@ -124,16 +124,12 @@ public class FilmService {
     @Transactional
     public Boolean addLike(Long filmId, Long userId) {
         log.debug("add like film {} by user {}", filmId, userId);
-<<<<<<< HEAD
         if (filmId < 0 || userId < 0) {
             throw new ValidationException(NO_NEGATIVE_PARAMETER_MESSAGE);
         }
         filmRepository.getFilm(filmId);
         userRepository.getUser(userId);
         Boolean result = filmRepository.addLike(filmId, userId);
-=======
-        userRepository.getUser(userId);
->>>>>>> 05a27253ac6368f20e84bbe8c15b2d544e7f9583
         feedRepository.addEventByParams(userId, System.currentTimeMillis(), FeedEventType.LIKE, FeedOperationType.ADD, filmId);
         return result;
     }

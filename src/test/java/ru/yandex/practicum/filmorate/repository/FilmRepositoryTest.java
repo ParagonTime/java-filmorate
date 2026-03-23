@@ -423,7 +423,7 @@ class FilmRepositoryTest {
         assertEquals(2, films.size());
         assertEquals(film1.getId(), films.stream().toList().getFirst().getId());
     }
-    
+
     @Test
     @Order(18)
     public void testSearchFilmsByDirector() {
@@ -435,7 +435,6 @@ class FilmRepositoryTest {
         Collection<Film> filmsSearchedByDirector = filmRepository.getSearchFilms("sixteen", true, false);
         assertEquals(1, filmsSearchedByDirector.size());
     }
-
 
     @Test
     @Order(19)

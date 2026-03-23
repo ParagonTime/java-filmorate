@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS events;
 DROP TABLE IF EXISTS review_reaction;
 DROP TABLE IF EXISTS reviews;
 DROP TABLE IF EXISTS film_genre;
@@ -98,4 +99,16 @@ CREATE TABLE IF NOT EXISTS review_reaction (
     FOREIGN KEY (review_id) REFERENCES reviews(review_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CHECK (reaction IN (1, -1))
+);
+
+CREATE TABLE IF NOT EXISTS events (
+  event_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  timestamp BIGINT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  operation VARCHAR NOT NULL,
+  entity_id BIGINT NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT chk_event_type CHECK(event_type IN ('LIKE', 'REVIEW', 'FRIEND')),
+  CONSTRAINT chk_operation CHECK(operation IN ('REMOVE', 'ADD', 'UPDATE'))
 );

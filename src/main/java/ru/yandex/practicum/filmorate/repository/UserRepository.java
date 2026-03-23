@@ -36,6 +36,9 @@ public class UserRepository extends BaseRepository<User> implements UserStorage 
 
     @Override
     public User save(User user) {
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
         Long id = insert(
                 INSERT_QUERY,
                 user.getName(),
@@ -49,6 +52,9 @@ public class UserRepository extends BaseRepository<User> implements UserStorage 
 
     @Override
     public User update(User user) {
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
         update(
                 UPDATE_QUERY,
                 user.getName(),

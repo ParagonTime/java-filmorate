@@ -34,7 +34,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @Import({FilmRepository.class, FilmRowMapper.class,
         MpaRowMapper.class, GenreRepository.class,
         GenreRowMapper.class, UserRepository.class,
-        UserRowMapper.class})
+        UserRowMapper.class, DirectorRepository.class,
+        DirectorDto.class, DirectorRowMapper.class})
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class FilmRepositoryTest {
@@ -375,5 +376,19 @@ class FilmRepositoryTest {
     public void testDeleteNonExistentFilm() {
         boolean deleted = filmRepository.deleteFilm(999L);
         assertFalse(deleted);
+    }
+
+    @Test
+    @Order(16)
+    public void testGetFilmsByDirector() {
+        DirectorDto director = new DirectorDto();
+        director.setName("First Director");
+        DirectorDto savedDirector = directorRepository.save(director);
+        Long filmId = filmRepository.save(film).getId();
+        directorRepository.saveDirectorForFilm(filmId, 1L);
+        Collection<Film> filmsDirectorSortYear = filmRepository.getFilmsByDirector(1L, "year");
+        assertEquals(1, filmsDirectorSortYear.size());
+        Collection<Film> filmsDirectorSortLikes = filmRepository.getFilmsByDirector(1L, "likes");
+        assertEquals(1, filmsDirectorSortLikes.size());
     }
 }

@@ -20,6 +20,7 @@ import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -88,4 +89,10 @@ public class FilmController {
         log.debug("delete film with id {}", filmId);
         filmService.deleteFilm(filmId);
     }
+
+    @GetMapping("/search")
+    public Collection<FilmDto> getSearchFilms(@RequestParam Map<String, String> searchParams) {
+        return filmService.getSearchFilms(searchParams);
+    }
+
 }

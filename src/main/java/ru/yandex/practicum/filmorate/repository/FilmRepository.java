@@ -45,6 +45,17 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                     "JOIN film_director fd ON f.id = fd.film_id " +
                     "WHERE fd.director_id = ? " +
                     "ORDER BY f.release_date ASC";
+    private static final String SEARCH_FILMS_QUERY = """
+            SELECT f.*, d.name as director_name, count(ul.USER_ID) AS likes_count
+            FROM films f
+            LEFT JOIN FILM_DIRECTOR fd ON f.ID = fd.FILM_ID
+            LEFT JOIN DIRECTORS d ON fd.DIRECTOR_ID = d.ID
+            LEFT JOIN USER_LIKE ul ON f.ID = ul.FILM_ID
+            WHERE lower(trim(f.name)) LIKE lower(trim(?))
+            	OR lower(trim(d.name)) LIKE lower(trim(?))
+            GROUP BY f.id, fd.DIRECTOR_ID
+            ORDER BY likes_count DESC, f.name, director_name
+            """;
     private static final String LIMIT_ARG = " LIMIT ?";
     private static final String FIND_FILMS_LIKED_BY_USER =
             "SELECT f.* FROM films f JOIN user_like ul ON f.id = ul.film_id WHERE ul.user_id = ?";
@@ -185,4 +196,11 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
     public boolean deleteFilm(Long filmId) {
         return delete(DELETE_FILM_QUERY, filmId);
     }
+
+    public Collection<Film> getSearchFilms(String query, Boolean searchByDirector, Boolean searchByTitle) {
+        String parSearchByDirector = searchByDirector ? "%" + query.trim().toLowerCase() + "%" : "''";
+        String parSearchByTitle = searchByTitle ? "%" + query.trim().toLowerCase() + "%" : "''";
+        return findMany(SEARCH_FILMS_QUERY, parSearchByTitle, parSearchByDirector);
+    }
+
 }

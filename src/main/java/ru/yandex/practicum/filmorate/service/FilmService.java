@@ -21,6 +21,7 @@ import ru.yandex.practicum.filmorate.repository.*;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -186,4 +187,33 @@ public class FilmService {
             throw new NotFoundException("Не удалось удалить фильм с id " + filmId);
         }
     }
+
+    public Collection<FilmDto> getSearchFilms(Map<String, String> searchParams) {
+        log.debug("search films by params: {}", searchParams.toString());
+        if (searchParams.size()  != 2) {
+            throw new ValidationException("Не указаны или неверно указаны параметры поиска. Корректный пример: ?query=крад&by=director,title");
+        }
+        if (!searchParams.containsKey("query")) {
+            throw new ValidationException("Среди параметров нет ключа 'query'. Непонятно, что искать");
+        }
+        String query = searchParams.get("query");
+        if (query == null || query.isBlank()) {
+            throw new ValidationException("Неправильно указано значение параметра 'query'. Непонятно, что искать");
+        }
+        if (!searchParams.containsKey("by")) {
+            throw new ValidationException("Среди параметров нет ключа 'by'. Непонятно, где искать");
+        }
+        String by = searchParams.get("by");
+        if (by == null || by.isBlank() ||
+                ((!by.trim().toLowerCase().contains("director")) && (!by.trim().toLowerCase().contains("title")))) {
+            throw new ValidationException("Неправильно указано значение параметра 'by'. Непонятно, где искать");
+        }
+        Boolean searchByDirector = by.trim().toLowerCase().contains("director");
+        Boolean searchByTitle = by.trim().toLowerCase().contains("title");
+
+        return filmRepository.getSearchFilms(query, searchByDirector, searchByTitle).stream()
+                .map(this::getFilmDto)
+                .collect(Collectors.toList());
+    }
+
 }

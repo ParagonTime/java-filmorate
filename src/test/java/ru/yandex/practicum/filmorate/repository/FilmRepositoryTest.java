@@ -423,4 +423,31 @@ class FilmRepositoryTest {
         assertEquals(2, films.size());
         assertEquals(film1.getId(), films.stream().toList().getFirst().getId());
     }
+
+    @Test
+    @Order(18)
+    public void testSearchFilmsByDirector() {
+        DirectorDto director = new DirectorDto();
+        director.setName("Sixteenth Test Director"); // когда-то это был 16-й тест, потом сместилось. Текст править не стал
+        DirectorDto savedDirector = directorRepository.save(director);
+        Long filmId = filmRepository.save(film).getId();
+        directorRepository.saveDirectorForFilm(filmId, savedDirector.getId());
+        Collection<Film> filmsSearchedByDirector = filmRepository.getSearchFilms("sixteen", true, false);
+        assertEquals(1, filmsSearchedByDirector.size());
+    }
+
+    @Test
+    @Order(19)
+    public void testSearchFilmsByTitle() {
+        film.setName("Seventeenth Test Film"); // когда-то это был 17-й тест, потом сместилось. Текст править не стал
+        Long filmId = filmRepository.save(film).getId();
+        Collection<Film> filmsSearchedByTitle = filmRepository.getSearchFilms("seven", false, true);
+        assertNotEquals(0, filmsSearchedByTitle.size());
+    }
+
+    @Test
+    @Order(20)
+    public void testSearchFilmsByTitleDirector() {
+        Collection<Film> filmsSearchedByTitleDirector = filmRepository.getSearchFilms("DummyString", true, true);
+    }
 }

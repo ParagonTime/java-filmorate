@@ -242,21 +242,55 @@ class FilmRepositoryTest {
     }
 
     @Test
-    @Order(10)
-    public void testGetFilmsByDirector() {
-        DirectorDto director = new DirectorDto();
-        director.setName("First Director");
-        DirectorDto savedDirector = directorRepository.save(director);
-        Long filmId = filmRepository.save(film).getId();
-        directorRepository.saveDirectorForFilm(filmId, 1L);
-        Collection<Film> filmsDirectorSortYear = filmRepository.getFilmsByDirector(1L, "year");
-        assertEquals(1, filmsDirectorSortYear.size());
-        Collection<Film> filmsDirectorSortLikes = filmRepository.getFilmsByDirector(1L, "likes");
-        assertEquals(1, filmsDirectorSortLikes.size());
+    @Order(11)
+    public void testGetFilmsLikedByUser() {
+        User testUser = new User();
+        testUser.setName("Test User");
+        testUser.setLogin("testLogin" + System.currentTimeMillis());
+        testUser.setEmail("test" + System.currentTimeMillis() + "@test.com");
+        testUser.setBirthday(LocalDate.of(1990, 1, 1));
+        User savedUser = userRepository.save(testUser);
+
+        Film testFilm1 = new Film();
+        testFilm1.setName("Test Film 1 " + System.currentTimeMillis());
+        testFilm1.setDescription("Description 1");
+        testFilm1.setReleaseDate(LocalDate.of(2000, 1, 1));
+        testFilm1.setDuration(120);
+        testFilm1.setRatingId(1L);
+        Film film1 = filmRepository.save(testFilm1);
+
+        Film testFilm2 = new Film();
+        testFilm2.setName("Test Film 2 " + System.currentTimeMillis());
+        testFilm2.setDescription("Description 2");
+        testFilm2.setReleaseDate(LocalDate.of(2001, 1, 1));
+        testFilm2.setDuration(130);
+        testFilm2.setRatingId(1L);
+        Film film2 = filmRepository.save(testFilm2);
+
+        Film testFilm3 = new Film();
+        testFilm3.setName("Test Film 3 " + System.currentTimeMillis());
+        testFilm3.setDescription("Description 3");
+        testFilm3.setReleaseDate(LocalDate.of(2002, 1, 1));
+        testFilm3.setDuration(140);
+        testFilm3.setRatingId(2L);
+        Film film3 = filmRepository.save(testFilm3);
+
+        Boolean like1 = filmRepository.addLike(film1.getId(), savedUser.getId());
+        Boolean like2 = filmRepository.addLike(film2.getId(), savedUser.getId());
+
+        assertTrue(like1);
+        assertTrue(like2);
+
+        Collection<Film> likedFilms = filmRepository.getFilmsLikedByUser(savedUser.getId());
+
+        assertEquals(2, likedFilms.size());
+        assertTrue(likedFilms.stream().anyMatch(f -> f.getId().equals(film1.getId())));
+        assertTrue(likedFilms.stream().anyMatch(f -> f.getId().equals(film2.getId())));
+        assertTrue(likedFilms.stream().noneMatch(f -> f.getId().equals(film3.getId())));
     }
 
     @Test
-    @Order(11)
+    @Order(12)
     public void testDeleteFilm() {
         film.setName(getNewName());
         Film savedFilm = filmRepository.save(film);
@@ -272,7 +306,7 @@ class FilmRepositoryTest {
     }
 
     @Test
-    @Order(12)
+    @Order(13)
     public void testDeleteFilmWithGenres() {
         film.setName(getNewName());
         Film savedFilm = filmRepository.save(film);
@@ -292,7 +326,7 @@ class FilmRepositoryTest {
     }
 
     @Test
-    @Order(13)
+    @Order(14)
     public void testDeleteFilmWithLikes() {
         film.setName(getNewName());
         Film savedFilm = filmRepository.save(film);
@@ -314,7 +348,7 @@ class FilmRepositoryTest {
     }
 
     @Test
-    @Order(14)
+    @Order(15)
     public void testDeleteFilmWithDirectors() {
         DirectorDto director = new DirectorDto();
         director.setName("Test Director");
@@ -340,9 +374,23 @@ class FilmRepositoryTest {
     }
 
     @Test
-    @Order(15)
+    @Order(16)
     public void testDeleteNonExistentFilm() {
         boolean deleted = filmRepository.deleteFilm(999L);
         assertFalse(deleted);
+    }
+
+    @Test
+    @Order(10)
+    public void testGetFilmsByDirector() {
+        DirectorDto director = new DirectorDto();
+        director.setName("First Director");
+        DirectorDto savedDirector = directorRepository.save(director);
+        Long filmId = filmRepository.save(film).getId();
+        directorRepository.saveDirectorForFilm(filmId, 1L);
+        Collection<Film> filmsDirectorSortYear = filmRepository.getFilmsByDirector(1L, "year");
+        assertEquals(1, filmsDirectorSortYear.size());
+        Collection<Film> filmsDirectorSortLikes = filmRepository.getFilmsByDirector(1L, "likes");
+        assertEquals(1, filmsDirectorSortLikes.size());
     }
 }

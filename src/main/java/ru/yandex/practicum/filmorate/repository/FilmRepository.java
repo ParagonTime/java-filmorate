@@ -36,6 +36,8 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
                     "JOIN film_director fd ON f.id = fd.film_id " +
                     "WHERE fd.director_id = ? " +
                     "ORDER BY f.release_date ASC";
+    private static final String FIND_FILMS_LIKED_BY_USER =
+            "SELECT f.* FROM films f JOIN user_like ul ON f.id = ul.film_id WHERE ul.user_id = ?";
     private static final String FIND_COMMON_FILMS =
             "SELECT f.*, COUNT(ul_all.user_id) as likes_count " +
                     "FROM films f " +
@@ -120,6 +122,14 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
         } else {
             return findMany(FIND_DIRECTOR_FILMS_SORT_BY_LIKES, directorId);
         }
+    }
+
+    public Collection<Film> getFilmsLikedByUser(Long userId) {
+        return findMany(FIND_FILMS_LIKED_BY_USER, userId);
+    }
+
+    public JdbcTemplate getJdbc() {
+        return jdbc;
     }
 
     public Collection<Film> getCommonFilms(Long userId, Long friendId) {

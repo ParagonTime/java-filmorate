@@ -7,7 +7,7 @@ import ru.yandex.practicum.filmorate.model.Feed;
 @Component
 public class FeedMapper {
 
-    public static FeedDto mapToFeedDto(Feed feed) {
+    public FeedDto mapToFeedDto(Feed feed) {
         FeedDto dto = new FeedDto();
         dto.setEventId(feed.getEventId());
         dto.setUserId(feed.getUserId());
@@ -18,7 +18,7 @@ public class FeedMapper {
         return dto;
     }
 
-    public static Feed mapToFeed(FeedDto dto) {
+    public Feed mapToFeed(FeedDto dto) {
         Feed feed = new Feed();
         feed.setEventId(dto.getEventId());
         feed.setUserId(dto.getUserId());

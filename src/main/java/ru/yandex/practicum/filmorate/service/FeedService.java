@@ -19,12 +19,13 @@ public class FeedService {
 
     private final FeedRepository feedRepository;
     private final UserRepository userRepository;
+    private final FeedMapper feedMapper;
 
     public List<FeedDto> getUserFeed(Long userId) {
         User u = userRepository.getUser(userId);
         Collection<Feed> feeds = feedRepository.getEventsByUserId(userId);
         return feeds.stream()
-                .map(FeedMapper::mapToFeedDto)
+                .map(feedMapper::mapToFeedDto)
                 .collect(Collectors.toList());
     }
 }

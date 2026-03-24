@@ -1,59 +1,85 @@
+// Filmorate Database Schema
+
 Table users {
-  id bigint [pk, increment]
-  email varchar(255) [not null, unique]
+  id bigint [pk, increment, not null]
+  email varchar(255) [unique, not null]
   login varchar(255) [not null]
   name varchar(255)
   birthday date
 }
 
 Table ratings {
-  id bigint [pk, increment]
+  id bigint [pk, increment, not null]
   rating_name varchar(255)
 }
 
 Table genres {
-  id bigint [pk, increment]
+  id bigint [pk, increment, not null]
   genre_name varchar(255) [not null]
 }
 
 Table films {
-  id bigint [pk, increment]
+  id bigint [pk, increment, not null]
   name varchar(255) [not null]
   description varchar(200)
   release_date date
   duration integer
-  rating_id bigint
+  rating_id bigint [ref: > ratings.id]
+  
+  Note: 'duration > 0'
 }
 
 Table film_genre {
-  film_id bigint [not null]
-  genre_id bigint [not null]
-  indexes {
-    (film_id, genre_id) [pk]
-  }
+  film_id bigint [pk, ref: > films.id, not null]
+  genre_id bigint [pk, ref: > genres.id, not null]
 }
 
 Table user_like {
-  film_id bigint [not null]
-  user_id bigint [not null]
-  indexes {
-    (film_id, user_id) [pk]
-  }
+  film_id bigint [pk, ref: > films.id, not null]
+  user_id bigint [pk, ref: > users.id, not null]
 }
 
 Table friendship {
-  friend_from bigint [not null]
-  friend_to bigint [not null]
+  friend_from bigint [pk, ref: > users.id, not null]
+  friend_to bigint [pk, ref: > users.id, not null]
   friendship_status varchar(20)
-  indexes {
-    (friend_from, friend_to) [pk]
-  }
+  
+  Note: 'friend_from != friend_to'
 }
 
-Ref: films.rating_id > ratings.id
-Ref: film_genre.film_id > films.id
-Ref: film_genre.genre_id > genres.id
-Ref: user_like.film_id > films.id
-Ref: user_like.user_id > users.id
-Ref: friendship.friend_from > users.id
-Ref: friendship.friend_to > users.id
+Table reviews {
+  review_id bigint [pk, increment, not null]
+  content varchar(1000) [not null]
+  is_positive boolean [not null]
+  user_id bigint [ref: > users.id, not null]
+  film_id bigint [ref: > films.id, not null]
+  useful integer [default: 0, not null]
+}
+
+Table review_reaction {
+  review_id bigint [pk, ref: > reviews.review_id, not null]
+  user_id bigint [pk, ref: > users.id, not null]
+  reaction smallint [not null]
+  
+  Note: 'reaction IN (1, -1)'
+}
+
+Table directors {
+  id bigint [pk, increment, not null]
+  name varchar(255) [not null]
+}
+
+Table film_director {
+  film_id bigint [pk, ref: > films.id, not null]
+  director_id bigint [pk, ref: > directors.id, not null]
+}
+
+Table events {
+  event_id bigint [pk, increment, not null]
+  user_id bigint [ref: > users.id, not null]
+  timestamp bigint [not null]
+  event_type varchar [not null]
+  operation varchar [not null]
+  entity_id bigint [not null]
+
+}

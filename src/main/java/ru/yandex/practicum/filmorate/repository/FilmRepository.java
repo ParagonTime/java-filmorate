@@ -10,6 +10,8 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Repository
 public class FilmRepository extends BaseRepository<Film> implements FilmStorage {
@@ -203,4 +205,30 @@ public class FilmRepository extends BaseRepository<Film> implements FilmStorage 
         return findMany(SEARCH_FILMS_QUERY, parSearchByTitle, parSearchByDirector);
     }
 
+    public List<Long> getRecommendationsFromUser(Long similarUserId, Set<Long> userLikedFilmIds) {
+        String sql = "SELECT film_id FROM user_like WHERE user_id = ? AND film_id NOT IN (" +
+                userLikedFilmIds.stream().map(id -> "?").collect(Collectors.joining(",")) + ")";
+
+        List<Object> params = new ArrayList<>();
+        params.add(similarUserId);
+        params.addAll(userLikedFilmIds);
+
+        return jdbc.queryForList(sql, Long.class, params.toArray());
+    }
+
+    public Long findSimilarUser(Long currentUserId, Set<Long> userLikedFilmIds) {
+        String sql = "SELECT user_id, COUNT(*) as common_likes " +
+                "FROM user_like " +
+                "WHERE user_id != ? AND film_id IN (" +
+                userLikedFilmIds.stream().map(id -> "?").collect(Collectors.joining(",")) + ") " +
+                "GROUP BY user_id " +
+                "ORDER BY common_likes DESC " +
+                "LIMIT 1";
+
+        List<Object> params = new ArrayList<>();
+        params.add(currentUserId);
+        params.addAll(userLikedFilmIds);
+
+        return jdbc.queryForObject(sql, (rs, rowNum) -> rs.getLong("user_id"), params.toArray());
+    }
 }

@@ -33,7 +33,9 @@ public class RecommendationService {
     public Collection<FilmDto> getRecommendations(Long userId) {
         User user = userRepository.getUser(userId);
 
-        Set<Long> userLikedFilmIds = getLikedFilmIds(userId);
+        Set<Long> userLikedFilmIds = filmRepository.getFilmsLikedByUser(userId).stream()
+                .map(Film::getId)
+                .collect(Collectors.toSet());
 
         log.debug("user {} liked {} films", userId, userLikedFilmIds.size());
 
@@ -62,40 +64,9 @@ public class RecommendationService {
                 .collect(Collectors.toList());
     }
 
-    private Set<Long> getLikedFilmIds(Long userId) {
-        Collection<Film> films = filmRepository.getFilms();
-        Set<Long> likedFilmIds = new HashSet<>();
-
-        for (Film film : films) {
-            if (isFilmLikedByUser(film.getId(), userId)) {
-                likedFilmIds.add(film.getId());
-            }
-        }
-
-        return likedFilmIds;
-    }
-
-    private boolean isFilmLikedByUser(Long filmId, Long userId) {
-        String sql = "SELECT COUNT(*) FROM user_like WHERE film_id = ? AND user_id = ?";
-        Integer count = filmRepository.getJdbc().queryForObject(sql, Integer.class, filmId, userId);
-        return count != null && count > 0;
-    }
-
     private Long findSimilarUser(Long currentUserId, Set<Long> userLikedFilmIds) {
-        String sql = "SELECT user_id, COUNT(*) as common_likes " +
-                "FROM user_like " +
-                "WHERE user_id != ? AND film_id IN (" +
-                userLikedFilmIds.stream().map(id -> "?").collect(Collectors.joining(",")) + ") " +
-                "GROUP BY user_id " +
-                "ORDER BY common_likes DESC " +
-                "LIMIT 1";
-
-        List<Object> params = new ArrayList<>();
-        params.add(currentUserId);
-        params.addAll(userLikedFilmIds);
-
         try {
-            return filmRepository.getJdbc().queryForObject(sql, (rs, rowNum) -> rs.getLong("user_id"), params.toArray());
+            return filmRepository.findSimilarUser(currentUserId, userLikedFilmIds);
         } catch (Exception e) {
             log.debug("No similar user found: {}", e.getMessage());
             return null;
@@ -103,15 +74,8 @@ public class RecommendationService {
     }
 
     private Set<Long> getRecommendationsFromUser(Long similarUserId, Set<Long> userLikedFilmIds) {
-        String sql = "SELECT film_id FROM user_like WHERE user_id = ? AND film_id NOT IN (" +
-                userLikedFilmIds.stream().map(id -> "?").collect(Collectors.joining(",")) + ")";
-
-        List<Object> params = new ArrayList<>();
-        params.add(similarUserId);
-        params.addAll(userLikedFilmIds);
-
         try {
-            List<Long> recommendedIds = filmRepository.getJdbc().queryForList(sql, Long.class, params.toArray());
+            List<Long> recommendedIds = filmRepository.getRecommendationsFromUser(similarUserId, userLikedFilmIds);
             return new HashSet<>(recommendedIds);
         } catch (Exception e) {
             log.debug("Error getting recommendations: {}", e.getMessage());

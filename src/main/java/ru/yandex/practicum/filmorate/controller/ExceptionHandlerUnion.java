@@ -46,7 +46,6 @@ public class ExceptionHandlerUnion {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleError(final RuntimeException e) {
         log.error(e.getMessage());
-        System.out.println(e.getClass());
         return new ErrorResponse(SERVER_ERROR_MESSAGE);
     }
 }

@@ -1,11 +1,10 @@
 package ru.yandex.practicum.filmorate.mapper;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dto.FeedDto;
 import ru.yandex.practicum.filmorate.model.Feed;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@Component
 public class FeedMapper {
 
     public static FeedDto mapToFeedDto(Feed feed) {

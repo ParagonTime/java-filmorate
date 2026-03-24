@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.repository;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -10,6 +11,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Repository
 public class DirectorRepository extends BaseRepository<DirectorDto> {
 
@@ -23,6 +25,8 @@ public class DirectorRepository extends BaseRepository<DirectorDto> {
     private static final String FIND_DIRECTORS_BY_FILM = "SELECT d.* FROM film_director fd JOIN directors d ON fd.director_id = d.id WHERE fd.film_id = ?";
 
     private static final String NO_EXIST_DIRECTOR_MESSAGE = "Режиссер с таким id не существует";
+    private static final String NO_EXIST_DIRECTOR_LOG_MESSAGE = "Режиссёр с таким id {} не найден";
+    private static final String NO_EXIST_FILM_MESSAGE = "Фильм с таким id {} не найден";
 
     public DirectorRepository(JdbcTemplate jdbc, RowMapper<DirectorDto> mapper) {
         super(jdbc, mapper);
@@ -39,7 +43,10 @@ public class DirectorRepository extends BaseRepository<DirectorDto> {
 
     public DirectorDto getDirector(Long id) {
         return findOne(FIND_BY_ID, id)
-                .orElseThrow(() -> new NotFoundException("Режиссёр с таким id " + id + " не найден"));
+                .orElseThrow(() -> {
+                    log.error(NO_EXIST_DIRECTOR_LOG_MESSAGE, id);
+                    return new NotFoundException("Режиссёр с таким id " + id + " не найден");
+                });
     }
 
     public DirectorDto update(DirectorDto director) {
@@ -50,6 +57,7 @@ public class DirectorRepository extends BaseRepository<DirectorDto> {
                     director.getId()
             );
         } catch (DataIntegrityViolationException e) {
+            log.error(NO_EXIST_DIRECTOR_LOG_MESSAGE, director.getId());
             throw new NotFoundException(NO_EXIST_DIRECTOR_MESSAGE);
         }
         return director;
@@ -64,6 +72,7 @@ public class DirectorRepository extends BaseRepository<DirectorDto> {
         try {
             result = update(DELETE_DIRECTOR, id);
         } catch (DataIntegrityViolationException e) {
+            log.error(NO_EXIST_DIRECTOR_LOG_MESSAGE, id);
             throw new NotFoundException(NO_EXIST_DIRECTOR_MESSAGE);
         }
         return result > 0;
@@ -78,6 +87,7 @@ public class DirectorRepository extends BaseRepository<DirectorDto> {
         try {
             update(INSERT_FILM_DIRECTOR, filmId, directorId);
         } catch (DataIntegrityViolationException e) {
+            log.error(NO_EXIST_DIRECTOR_LOG_MESSAGE, directorId);
             throw new NotFoundException(NO_EXIST_DIRECTOR_MESSAGE);
         }
     }
@@ -86,6 +96,7 @@ public class DirectorRepository extends BaseRepository<DirectorDto> {
         try {
             update(DELETE_FILM_DIRECTORS, filmId);
         } catch (DataIntegrityViolationException e) {
+            log.error(NO_EXIST_FILM_MESSAGE, filmId);
             throw new NotFoundException(NO_EXIST_DIRECTOR_MESSAGE);
         }
     }

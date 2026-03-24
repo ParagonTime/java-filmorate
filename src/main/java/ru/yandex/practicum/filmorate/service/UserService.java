@@ -88,7 +88,6 @@ public class UserService {
                 .toList();
     }
 
-    @Transactional
     public void deleteUser(Long userId) {
         log.debug("delete user with id {}", userId);
 

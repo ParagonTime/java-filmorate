@@ -1,7 +1,5 @@
 package ru.yandex.practicum.filmorate.mapper;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dto.DirectorDto;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
@@ -17,7 +15,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class FilmMapper {
     public Film mapToFilm(NewFilmRequest request) {
         Film film = new Film();

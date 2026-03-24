@@ -16,7 +16,12 @@ import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.FeedEventType;
 import ru.yandex.practicum.filmorate.model.FeedOperationType;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.repository.*;
+import ru.yandex.practicum.filmorate.repository.DirectorRepository;
+import ru.yandex.practicum.filmorate.repository.FeedRepository;
+import ru.yandex.practicum.filmorate.repository.FilmRepository;
+import ru.yandex.practicum.filmorate.repository.GenreRepository;
+import ru.yandex.practicum.filmorate.repository.MpaRepository;
+import ru.yandex.practicum.filmorate.repository.UserRepository;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -118,9 +123,6 @@ public class FilmService {
 
     public FilmDto getFilm(Long id) {
         log.debug("get film by id: {}", id);
-        if (id < 0) {
-            throw new ValidationException(NO_NEGATIVE_PARAMETER_MESSAGE);
-        }
         Film film = filmRepository.getFilm(id);
         return getFilmDto(film);
     }
@@ -143,15 +145,6 @@ public class FilmService {
         Boolean result = filmRepository.deleteLike(filmId, userId);
         feedRepository.addEventByParams(userId, System.currentTimeMillis(), FeedEventType.LIKE, FeedOperationType.REMOVE, filmId);
         return result;
-    }
-
-    public Collection<FilmDto> getPopularFilms(Long count) {
-        if (count < 0) {
-            throw new ValidationException(NO_NEGATIVE_PARAMETER_MESSAGE);
-        }
-        return filmRepository.getPopularFilms(count).stream()
-                .map(this::getFilmDto)
-                .collect(Collectors.toList());
     }
 
     private FilmDto getFilmDto(Film film) {
@@ -206,11 +199,11 @@ public class FilmService {
 
     public Collection<FilmDto> getSearchFilms(Map<String, String> searchParams) {
         log.debug("search films by params: {}", searchParams.toString());
-        if (searchParams.size()  != 2) {
+        if (searchParams.size() != 2) {
             throw new ValidationException("Не указаны или неверно указаны параметры поиска. Корректный пример: ?query=крад&by=director,title");
         }
         if (!searchParams.containsKey("query")) {
-            throw new ValidationException("Среди параметров нет ключа 'query'. Непонятно, что искать");
+            throw new ValidationException(" В параметрах запроса не указан ключ query, повторите запрос");
         }
         String query = searchParams.get("query");
         if (query == null || query.isBlank()) {

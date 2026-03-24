@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -47,7 +48,7 @@ public class FilmController {
     }
 
     @GetMapping("/{id}")
-    public FilmDto getFilm(@PathVariable("id") Long id) {
+    public FilmDto getFilm(@PathVariable("id") @Positive(message = "ID должен быть положительным числом") Long id) {
         return filmService.getFilm(id);
     }
 

@@ -293,42 +293,6 @@ class FilmServiceTest {
     }
 
     @Test
-    @Order(13)
-    public void testGetPopularFilms() {
-        FilmDto film1 = filmService.postFilm(newFilm);
-
-        NewFilmRequest anotherFilm = new NewFilmRequest();
-        anotherFilm.setName(getNewFilmName());
-        anotherFilm.setDescription("Another film");
-        anotherFilm.setReleaseDate(LocalDate.of(2000, 1, 1));
-        anotherFilm.setDuration(120);
-        MpaDto mpa = new MpaDto();
-        mpa.setId(1L);
-        anotherFilm.setMpa(mpa);
-        FilmDto film2 = filmService.postFilm(anotherFilm);
-
-        NewFilmRequest thirdFilm = new NewFilmRequest();
-        thirdFilm.setName(getNewFilmName());
-        thirdFilm.setDescription("Third film");
-        thirdFilm.setReleaseDate(LocalDate.of(2000, 1, 1));
-        thirdFilm.setDuration(120);
-        thirdFilm.setMpa(mpa);
-        FilmDto film3 = filmService.postFilm(thirdFilm);
-
-        user.setEmail(getNewEmail());
-        UserDto userDtoOne = userService.postUser(user);
-        userTwo.setEmail(getNewEmail());
-        UserDto userDtoTwo = userService.postUser(userTwo);
-
-        filmService.addLike(film2.getId(), userDtoOne.getId());
-        filmService.addLike(film2.getId(), userDtoTwo.getId());
-        filmService.addLike(film3.getId(), userDtoOne.getId());
-
-        Collection<FilmDto> popularFilms = filmService.getPopularFilms(2L);
-        assertEquals(2, popularFilms.size());
-    }
-
-    @Test
     @Order(14)
     public void testGetFilmsWithGenreByYear() {
         GenreDto genre = new GenreDto();
@@ -410,7 +374,7 @@ class FilmServiceTest {
 
         filmService.addLike(filmId, createdUser.getId());
 
-        Collection<FilmDto> popularFilms = filmService.getPopularFilms(10L);
+        Collection<FilmDto> popularFilms = filmService.getPopularWithGenreByYear(10, null, null);
         boolean hasLike = popularFilms.stream().anyMatch(f -> f.getId().equals(filmId));
         assertTrue(hasLike);
 

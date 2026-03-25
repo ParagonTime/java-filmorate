@@ -7,8 +7,12 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.dto.NewUserRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.dto.UserDto;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
+import ru.yandex.practicum.filmorate.model.FeedEventType;
+import ru.yandex.practicum.filmorate.model.FeedOperationType;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.repository.FeedRepository;
 import ru.yandex.practicum.filmorate.repository.UserRepository;
 
 import java.util.Collection;
@@ -20,6 +24,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final FeedRepository feedRepository;
 
     public UserDto postUser(NewUserRequest request) {
         log.debug("create user {}", request);
@@ -53,6 +58,7 @@ public class UserService {
     public Collection<UserDto> addFriend(Long id, Long friendId) {
         log.debug("add friend {} user {}", friendId, id);
         Collection<User> users = userRepository.addFriend(id, friendId);
+        feedRepository.addEventByParams(id, System.currentTimeMillis(), FeedEventType.FRIEND, FeedOperationType.ADD, friendId);
         return users.stream()
                 .map(userMapper::mapToUserDto)
                 .toList();
@@ -62,6 +68,7 @@ public class UserService {
     public Collection<UserDto> deleteFriend(Long id, Long friendId) {
         log.debug("delete friend {} user {}", friendId, id);
         Collection<User> users = userRepository.deleteFriend(id, friendId);
+        feedRepository.addEventByParams(id, System.currentTimeMillis(), FeedEventType.FRIEND, FeedOperationType.REMOVE, friendId);
         return users.stream()
                 .map(userMapper::mapToUserDto)
                 .toList();
@@ -79,5 +86,15 @@ public class UserService {
         return userRepository.getCommonFriends(id, otherId).stream()
                 .map(userMapper::mapToUserDto)
                 .toList();
+    }
+
+    public void deleteUser(Long userId) {
+        log.debug("delete user with id {}", userId);
+
+        boolean deleted = userRepository.deleteUser(userId);
+
+        if (!deleted) {
+            throw new NotFoundException("Не удалось удалить пользователя с id " + userId);
+        }
     }
 }

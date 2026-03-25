@@ -13,17 +13,18 @@ public class UpdateFilmRequest {
     @NotNull
     private Long id;
     private String name;
+
     @Size(max = 200, message = "Максимальная длина описания — 200 символов")
     private String description;
+
     private LocalDate releaseDate;
+
     @Positive(message = "Продолжительность фильма должна быть положительным числом")
     private Integer duration;
+
     private MpaDto mpa;
     private List<GenreDto> genres;
-
-    public boolean hasId() {
-        return !(id == null || id < 0);
-    }
+    private List<DirectorDto> directors;
 
     public boolean hasName() {
         return !(name == null || name.isBlank());
@@ -34,7 +35,7 @@ public class UpdateFilmRequest {
     }
 
     public boolean hasReleaseDate() {
-        return !(releaseDate == null || releaseDate.isAfter(LocalDate.now()));
+        return releaseDate != null;
     }
 
     public boolean hasDuration() {
@@ -42,10 +43,14 @@ public class UpdateFilmRequest {
     }
 
     public boolean hasMpa() {
-        return !(mpa == null);
+        return mpa != null;
     }
 
     public boolean hasGenres() {
-        return !(genres == null || genres.isEmpty());
+        return genres != null;
+    }
+
+    public boolean hasDirector() {
+        return directors != null;
     }
 }

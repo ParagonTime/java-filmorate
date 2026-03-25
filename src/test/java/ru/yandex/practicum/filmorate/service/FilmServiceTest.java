@@ -8,9 +8,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import ru.yandex.practicum.filmorate.dto.DirectorDto;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
 import ru.yandex.practicum.filmorate.dto.MpaDto;
+import ru.yandex.practicum.filmorate.dto.NewDirectorRequest;
 import ru.yandex.practicum.filmorate.dto.NewFilmRequest;
 import ru.yandex.practicum.filmorate.dto.NewUserRequest;
 import ru.yandex.practicum.filmorate.dto.UpdateFilmRequest;
@@ -33,10 +35,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class FilmServiceTest {
     private final FilmService filmService;
     private final UserService userService;
+    private final DirectorService directorService;
     private static NewFilmRequest newFilm;
-    private static NewFilmRequest filmWithGenres;
+    private static NewFilmRequest filmWithAllFields;
     private static NewUserRequest user;
     private static NewUserRequest userTwo;
+    private static DirectorDto directorDtoOne;
+    private static DirectorDto directorDtoTwo;
     private static int emailCount;
     private static int filmCount;
 
@@ -76,20 +81,28 @@ class FilmServiceTest {
         mpa.setId(1L);
         newFilm.setMpa(mpa);
 
-        filmWithGenres = new NewFilmRequest();
-        filmWithGenres.setName(getNewFilmName());
-        filmWithGenres.setDescription("Description with genres");
-        filmWithGenres.setReleaseDate(LocalDate.of(2000, 1, 1));
-        filmWithGenres.setDuration(120);
+        filmWithAllFields = new NewFilmRequest();
+        filmWithAllFields.setName(getNewFilmName());
+        filmWithAllFields.setDescription("Description with genres");
+        filmWithAllFields.setReleaseDate(LocalDate.of(2000, 1, 1));
+        filmWithAllFields.setDuration(120);
         MpaDto mpaWithGenres = new MpaDto();
         mpaWithGenres.setId(1L);
-        filmWithGenres.setMpa(mpaWithGenres);
+        filmWithAllFields.setMpa(mpaWithGenres);
 
         GenreDto comedy = new GenreDto();
         comedy.setId(1L);
         GenreDto drama = new GenreDto();
         drama.setId(2L);
-        filmWithGenres.setGenres(List.of(comedy, drama));
+        filmWithAllFields.setGenres(List.of(comedy, drama));
+
+        directorDtoOne = new DirectorDto();
+        directorDtoOne.setId(1L);
+        directorDtoOne.setName("First Director");
+        directorDtoTwo = new DirectorDto();
+        directorDtoTwo.setId(2L);
+        directorDtoTwo.setName("Second Director");
+        filmWithAllFields.setDirectors(List.of(directorDtoOne, directorDtoTwo));
     }
 
     @Test
@@ -163,7 +176,25 @@ class FilmServiceTest {
     @Test
     @Order(6)
     public void testPostFilmWithGenres() {
-        FilmDto createdFilm = filmService.postFilm(filmWithGenres);
+        NewDirectorRequest dReq1 = new NewDirectorRequest();
+        dReq1.setName("First");
+        DirectorDto createdDirector1 = directorService.createDirector(dReq1);
+
+        NewDirectorRequest dReq2 = new NewDirectorRequest();
+        dReq2.setName("Second");
+        DirectorDto createdDirector2 = directorService.createDirector(dReq2);
+
+        DirectorDto directorDto1 = new DirectorDto();
+        directorDto1.setId(createdDirector1.getId());
+        directorDto1.setName(createdDirector1.getName());
+
+        DirectorDto directorDto2 = new DirectorDto();
+        directorDto2.setId(createdDirector2.getId());
+        directorDto2.setName(createdDirector2.getName());
+
+        filmWithAllFields.setDirectors(List.of(directorDto1, directorDto2));
+
+        FilmDto createdFilm = filmService.postFilm(filmWithAllFields);
         assertNotNull(createdFilm.getId());
         assertEquals(2, createdFilm.getGenres().size());
     }
@@ -225,8 +256,13 @@ class FilmServiceTest {
     @Test
     @Order(10)
     public void testGetFilms() {
+        NewDirectorRequest directorRequest = new NewDirectorRequest();
+        directorRequest.setName("First Director");
+        directorService.createDirector(directorRequest);
+        directorRequest.setName("Second Director");
+        directorService.createDirector(directorRequest);
         filmService.postFilm(newFilm);
-        filmService.postFilm(filmWithGenres);
+        filmService.postFilm(filmWithAllFields);
 
         Collection<FilmDto> films = filmService.getFilms();
         assertTrue(films.size() >= 2);
@@ -257,38 +293,166 @@ class FilmServiceTest {
     }
 
     @Test
-    @Order(13)
-    public void testGetPopularFilms() {
-        FilmDto film1 = filmService.postFilm(newFilm);
+    @Order(14)
+    public void testGetFilmsWithGenreByYear() {
+        GenreDto genre = new GenreDto();
+        genre.setId(4L);
+        newFilm.setGenres(List.of(genre));
+        newFilm.setReleaseDate(LocalDate.of(2000, 1, 1));
+        filmWithAllFields.setGenres(List.of(genre));
+        filmWithAllFields.setReleaseDate(LocalDate.of(2000, 1, 1));
 
-        NewFilmRequest anotherFilm = new NewFilmRequest();
-        anotherFilm.setName(getNewFilmName());
-        anotherFilm.setDescription("Another film");
-        anotherFilm.setReleaseDate(LocalDate.of(2000, 1, 1));
-        anotherFilm.setDuration(120);
-        MpaDto mpa = new MpaDto();
-        mpa.setId(1L);
-        anotherFilm.setMpa(mpa);
-        FilmDto film2 = filmService.postFilm(anotherFilm);
-
-        NewFilmRequest thirdFilm = new NewFilmRequest();
-        thirdFilm.setName(getNewFilmName());
-        thirdFilm.setDescription("Third film");
-        thirdFilm.setReleaseDate(LocalDate.of(2000, 1, 1));
-        thirdFilm.setDuration(120);
-        thirdFilm.setMpa(mpa);
-        FilmDto film3 = filmService.postFilm(thirdFilm);
+        FilmDto filmDto1 = filmService.postFilm(newFilm);
+        FilmDto filmDto2 = filmService.postFilm(filmWithAllFields);
 
         user.setEmail(getNewEmail());
-        UserDto userDtoOne = userService.postUser(user);
         userTwo.setEmail(getNewEmail());
-        UserDto userDtoTwo = userService.postUser(userTwo);
 
-        filmService.addLike(film2.getId(), userDtoOne.getId());
-        filmService.addLike(film2.getId(), userDtoTwo.getId());
-        filmService.addLike(film3.getId(), userDtoOne.getId());
+        UserDto userDto1 = userService.postUser(user);
+        UserDto userDto2 = userService.postUser(userTwo);
 
-        Collection<FilmDto> popularFilms = filmService.getPopularFilms(2L);
-        assertEquals(2, popularFilms.size());
+        filmService.addLike(filmDto1.getId(), userDto1.getId());
+        filmService.addLike(filmDto1.getId(), userDto2.getId());
+        filmService.addLike(filmDto2.getId(), userDto1.getId());
+
+        Collection<FilmDto> films = filmService.getPopularWithGenreByYear(10, 4L, 2000);
+
+        assertEquals(2, films.size());
+        assertEquals(filmDto1.getId(), films.stream().toList().getFirst().getId());
+    }
+
+    @Test
+    @Order(16)
+    public void testGetFilmsByDirector() {
+        NewDirectorRequest directorRequest = new NewDirectorRequest();
+        directorRequest.setName("Director 1");
+        DirectorDto createdDirector = directorService.createDirector(directorRequest);
+        System.out.println("Created director with id: " + createdDirector.getId());
+
+        DirectorDto directorForFilm = new DirectorDto();
+        directorForFilm.setId(createdDirector.getId());
+        directorForFilm.setName(createdDirector.getName());
+        newFilm.setDirectors(List.of(directorForFilm));
+
+        FilmDto filmOne = filmService.postFilm(newFilm);
+        System.out.println("Created film 1 with id: " + filmOne.getId() + ", directors: " + filmOne.getDirectors());
+
+        FilmDto filmTwo = filmService.postFilm(newFilm);
+        System.out.println("Created film 2 with id: " + filmTwo.getId() + ", directors: " + filmTwo.getDirectors());
+
+        Collection<FilmDto> filmDirectorSortYear = filmService.getFilmsByDirector(createdDirector.getId(), "year");
+        System.out.println("Films by year: " + filmDirectorSortYear.size());
+        assertEquals(2, filmDirectorSortYear.size());
+
+        Collection<FilmDto> filmDirectorSortLikes = filmService.getFilmsByDirector(createdDirector.getId(), "likes");
+        System.out.println("Films by likes: " + filmDirectorSortLikes.size());
+        assertEquals(2, filmDirectorSortLikes.size());
+    }
+
+    @Test
+    @Order(15)
+    public void testDeleteFilm() {
+        FilmDto createdFilm = filmService.postFilm(newFilm);
+        Long filmId = createdFilm.getId();
+
+        FilmDto foundFilm = filmService.getFilm(filmId);
+        assertNotNull(foundFilm);
+
+        filmService.deleteFilm(filmId);
+
+        assertThrows(NotFoundException.class, () -> filmService.getFilm(filmId));
+    }
+
+    @Test
+    @Order(16)
+    public void testDeleteFilmWithLikes() {
+        FilmDto createdFilm = filmService.postFilm(newFilm);
+        Long filmId = createdFilm.getId();
+
+        user.setEmail(getNewEmail());
+        UserDto createdUser = userService.postUser(user);
+
+        filmService.addLike(filmId, createdUser.getId());
+
+        Collection<FilmDto> popularFilms = filmService.getPopularWithGenreByYear(10, null, null);
+        boolean hasLike = popularFilms.stream().anyMatch(f -> f.getId().equals(filmId));
+        assertTrue(hasLike);
+
+        filmService.deleteFilm(filmId);
+
+        assertThrows(NotFoundException.class, () -> filmService.getFilm(filmId));
+
+        UserDto existingUser = userService.getUser(createdUser.getId());
+        assertNotNull(existingUser);
+    }
+
+    @Test
+    @Order(17)
+    public void testDeleteFilmWithGenres() {
+        FilmDto createdFilm = filmService.postFilm(filmWithAllFields);
+        Long filmId = createdFilm.getId();
+
+        assertTrue(createdFilm.getGenres().size() > 0);
+
+        filmService.deleteFilm(filmId);
+
+        assertThrows(NotFoundException.class, () -> filmService.getFilm(filmId));
+    }
+
+    @Test
+    @Order(18)
+    public void testDeleteFilmWithDirectors() {
+        NewDirectorRequest directorRequest = new NewDirectorRequest();
+        directorRequest.setName("Test Director for Delete");
+        DirectorDto createdDirector = directorService.createDirector(directorRequest);
+
+        NewFilmRequest filmWithDirector = new NewFilmRequest();
+        filmWithDirector.setName(getNewFilmName());
+        filmWithDirector.setDescription("Film with director");
+        filmWithDirector.setReleaseDate(LocalDate.of(2000, 1, 1));
+        filmWithDirector.setDuration(120);
+        MpaDto mpa = new MpaDto();
+        mpa.setId(1L);
+        filmWithDirector.setMpa(mpa);
+
+        DirectorDto directorForFilm = new DirectorDto();
+        directorForFilm.setId(createdDirector.getId());
+        filmWithDirector.setDirectors(List.of(directorForFilm));
+
+        FilmDto createdFilm = filmService.postFilm(filmWithDirector);
+        Long filmId = createdFilm.getId();
+
+        assertEquals(1, createdFilm.getDirectors().size());
+
+        filmService.deleteFilm(filmId);
+
+        assertThrows(NotFoundException.class, () -> filmService.getFilm(filmId));
+
+        DirectorDto existingDirector = directorService.getDirector(createdDirector.getId());
+        assertNotNull(existingDirector);
+    }
+
+    @Test
+    @Order(19)
+    public void testDeleteNonExistentFilm() {
+        assertThrows(NotFoundException.class, () -> filmService.deleteFilm(999L));
+    }
+
+    @Test
+    @Order(20)
+    public void testDeleteFilmAndVerifyCascadeDelete() {
+        FilmDto createdFilm = filmService.postFilm(newFilm);
+        Long filmId = createdFilm.getId();
+
+        user.setEmail(getNewEmail());
+        UserDto createdUser = userService.postUser(user);
+        filmService.addLike(filmId, createdUser.getId());
+
+        filmService.deleteFilm(filmId);
+
+        assertThrows(NotFoundException.class, () -> filmService.getFilm(filmId));
+
+        UserDto existingUser = userService.getUser(createdUser.getId());
+        assertNotNull(existingUser);
     }
 }

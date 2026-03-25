@@ -1,10 +1,17 @@
+DROP TABLE IF EXISTS events;
+DROP TABLE IF EXISTS review_reaction;
+DROP TABLE IF EXISTS reviews;
 DROP TABLE IF EXISTS film_genre;
 DROP TABLE IF EXISTS user_like;
 DROP TABLE IF EXISTS friendship;
+DROP TABLE IF EXISTS film_director;
 DROP TABLE IF EXISTS films;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS ratings;
 DROP TABLE IF EXISTS genres;
+DROP TABLE IF EXISTS directors;
+
+
 
 CREATE TABLE IF NOT EXISTS users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -58,4 +65,50 @@ CREATE TABLE IF NOT EXISTS friendship (
     FOREIGN KEY (friend_from) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (friend_to) REFERENCES users(id) ON DELETE CASCADE,
     CHECK (friend_from != friend_to)
+);
+
+CREATE TABLE IF NOT EXISTS reviews (
+    review_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    content VARCHAR(1000) NOT NULL,
+    is_positive BOOLEAN NOT NULL,
+    user_id BIGINT NOT NULL,
+    film_id BIGINT NOT NULL,
+    useful INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (film_id) REFERENCES films(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS review_reaction (
+    review_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    reaction SMALLINT NOT NULL,
+    PRIMARY KEY (review_id, user_id),
+    FOREIGN KEY (review_id) REFERENCES reviews(review_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CHECK (reaction IN (1, -1))
+);
+
+CREATE TABLE IF NOT EXISTS directors (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS film_director (
+    film_id BIGINT NOT NULL,
+    director_id BIGINT NOT NULL,
+    PRIMARY KEY (film_id, director_id),
+    FOREIGN KEY (film_id) REFERENCES films(id) ON DELETE CASCADE,
+    FOREIGN KEY (director_id) REFERENCES directors(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS events (
+  event_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  timestamp BIGINT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  operation VARCHAR NOT NULL,
+  entity_id BIGINT NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT chk_event_type CHECK(event_type IN ('LIKE', 'REVIEW', 'FRIEND')),
+  CONSTRAINT chk_operation CHECK(operation IN ('REMOVE', 'ADD', 'UPDATE'))
 );

@@ -1,7 +1,5 @@
 package ru.yandex.practicum.filmorate.mapper;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
@@ -10,7 +8,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 @Component
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserRowMapper implements RowMapper<User> {
     @Override
     public User mapRow(ResultSet rs, int rowNum) throws SQLException {
